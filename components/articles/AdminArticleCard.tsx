@@ -134,7 +134,7 @@ export function AdminArticleCard({
 
       {/* Row 4: Author + date */}
       <div className="mt-2 flex flex-wrap items-center gap-x-1 text-sm text-zinc-400">
-        <span>By {article.author.username}</span>
+        <span>By {article.author?.username?? article.author_username ?? "Unknown"}</span>
         <span>·</span>
         <span>{article.campus_name}</span>
         <span>·</span>

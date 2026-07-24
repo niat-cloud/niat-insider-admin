@@ -55,7 +55,7 @@ export type Article = {
   meta_keywords: string[]
   topic: string
   is_global_guide: boolean
-  author: Author
+  author: Author| null
   reviewed_by?: Author | null
   author_username: string
   campus_name: string
@@ -83,7 +83,8 @@ export type ArticleListItem = {
   created_at: string
   updated_at: string
   category: string
-  author: Author
+  author: Author| null
+  author_username?: string
   reviewed_by?: Author | null
   campus_name: string
   campus_slug: string

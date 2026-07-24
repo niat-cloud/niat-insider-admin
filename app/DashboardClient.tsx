@@ -169,7 +169,7 @@ export function DashboardClient() {
                     </h3>
                   </div>
                   <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
-                    <span>By {article.author.username}</span>
+                    <span>By {article.author?.username ?? article.author_username ?? "Unknown"}</span>
                     <span>{article.campus_name}</span>
                   </div>
                 </Link>
