@@ -197,6 +197,14 @@ export async function bulkRejectAnswers(
   return data;
 }
 
+/** GET /api/questions/categories/ — public, no auth required. */
+export async function getQuestionCategories(): Promise<string[]> {
+  const { data } = await api.get<{ categories: string[] }>(
+    "/api/questions/categories/"
+  );
+  return data.categories ?? [];
+}
+
 /** DRF error shapes this API returns: {"detail": "..."} or {"field": ["msg", ...]}. */
 export function qaErrorMessage(err: any, fallback: string): string {
   const data = err?.response?.data;
