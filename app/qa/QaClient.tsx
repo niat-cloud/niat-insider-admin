@@ -118,6 +118,9 @@ export function QaClient() {
   const [rejectDraft, setRejectDraft] = useState<{
     kind: "reject" | "takedown";
     scope: "single" | "bulk";
+    /** When set, targets a specific answer nested inside the open question detail
+     *  dialog, rather than the question itself or the standalone answer dialog. */
+    targetAnswerId?: string;
   } | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
@@ -211,6 +214,8 @@ export function QaClient() {
     setDetailLoading(true);
     setEditMode(false);
     setNewAnswerBody("");
+    setRejectDraft(null);
+    setRejectReason("");
     try {
       const detail = await getAdminQuestion(slug);
       setDetailQuestion(detail);
@@ -841,8 +846,8 @@ export function QaClient() {
                 )}
               </div>
 
-              {/* inline reject/takedown reason for single item */}
-              {rejectDraft?.scope === "single" && (
+              {/* inline reject/takedown reason for the question itself (not a nested answer) */}
+              {rejectDraft?.scope === "single" && !rejectDraft.targetAnswerId && (
                 <div className="space-y-2 rounded-md border border-white/10 p-3">
                   <Label className="text-xs">
                     {rejectDraft.kind === "takedown" ? "Takedown reason" : "Rejection reason"}{" "}
@@ -921,7 +926,13 @@ export function QaClient() {
                               variant="outline"
                               className="text-red-400"
                               disabled={actionPending}
-                              onClick={() => runAnswerAction("reject", a.id, undefined, true)}
+                              onClick={() =>
+                                setRejectDraft({
+                                  kind: "reject",
+                                  scope: "single",
+                                  targetAnswerId: a.id,
+                                })
+                              }
                             >
                               Reject
                             </Button>
@@ -933,12 +944,60 @@ export function QaClient() {
                             variant="outline"
                             className="text-red-400"
                             disabled={actionPending}
-                            onClick={() => runAnswerAction("takedown", a.id, undefined, true)}
+                            onClick={() =>
+                              setRejectDraft({
+                                kind: "takedown",
+                                scope: "single",
+                                targetAnswerId: a.id,
+                              })
+                            }
                           >
                             Take down
                           </Button>
                         )}
                       </div>
+
+                      {rejectDraft?.scope === "single" && rejectDraft.targetAnswerId === a.id && (
+                        <div className="mt-2 space-y-2 rounded-md border border-white/10 bg-black/20 p-2.5">
+                          <Label className="text-xs">
+                            {rejectDraft.kind === "takedown" ? "Takedown reason" : "Rejection reason"}{" "}
+                            (optional)
+                          </Label>
+                          <Textarea
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            placeholder="Optional reason for the author..."
+                            rows={2}
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={actionPending}
+                              onClick={() =>
+                                runAnswerAction(
+                                  rejectDraft.kind,
+                                  a.id,
+                                  rejectReason.trim() || undefined,
+                                  true
+                                )
+                              }
+                            >
+                              Confirm
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setRejectDraft(null);
+                                setRejectReason("");
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                   {(detailQuestion.answers ?? []).length === 0 && (
@@ -1029,7 +1088,7 @@ export function QaClient() {
                   </Button>
                 )}
               </div>
-              {rejectDraft?.scope === "single" && (
+              {rejectDraft?.scope === "single" && !rejectDraft.targetAnswerId && (
                 <div className="space-y-2 rounded-md border border-white/10 p-3">
                   <Textarea
                     value={rejectReason}
