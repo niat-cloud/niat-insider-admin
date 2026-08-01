@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getArticles } from "@/lib/api/articles";
-import { FileText, CheckCircle, Clock, XCircle, BarChart3 } from "lucide-react";
+import { getAdminQuestions, getAdminAnswers } from "@/lib/api/qa";
+import { FileText, CheckCircle, Clock, XCircle, BarChart3, MessageCircleQuestion } from "lucide-react";
 import Link from "next/link";
 
 export function DashboardClient() {
@@ -31,6 +32,21 @@ export function DashboardClient() {
     queryKey: ["articles", "recent"],
     queryFn: () => getArticles({ page_size: 6, ordering: "-created_at" }),
   });
+
+  const { data: qaPendingQuestions, isLoading: isLoadingQaQuestions } = useQuery({
+    queryKey: ["qa", "questions", "pending-count"],
+    queryFn: () => getAdminQuestions({ status: "pending", page: 1 }),
+  });
+
+  const { data: qaPendingAnswers, isLoading: isLoadingQaAnswers } = useQuery({
+    queryKey: ["qa", "answers", "pending-count"],
+    queryFn: () => getAdminAnswers({ status: "pending", page: 1 }),
+  });
+
+  const isLoadingQaPending = isLoadingQaQuestions || isLoadingQaAnswers;
+  const qaPendingTotal =
+    (qaPendingQuestions?.status_counts.pending ?? 0) +
+    (qaPendingAnswers?.status_counts.pending ?? 0);
 
   const recentArticles = recentData?.results || [];
   const displayArticles = [...recentArticles];
@@ -96,6 +112,15 @@ export function DashboardClient() {
       color: "text-red-400",
       bg: "bg-red-400/10",
       href: "/articles?status=rejected",
+    },
+    {
+      name: "Pending Q&A",
+      value: qaPendingTotal,
+      isLoading: isLoadingQaPending,
+      icon: MessageCircleQuestion,
+      color: "text-purple-400",
+      bg: "bg-purple-400/10",
+      href: "/qa?status=pending",
     },
   ];
 
