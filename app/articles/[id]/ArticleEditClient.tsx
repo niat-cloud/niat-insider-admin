@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, Upload, X, Star } from "lucide-react";
 import { useArticle, useUpdateArticle } from "@/hooks/useArticles";
+import { useGoBack } from "@/hooks/useGoBack";
 import { useToast } from "@/hooks/useToast";
 import { uploadArticleImage, getSubcategories } from "@/lib/api/articles";
 import type { SubcategoryOption } from "@/lib/api/articles";
@@ -41,7 +40,7 @@ type ArticleEditClientProps = {
 };
 
 export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
-  const router = useRouter();
+  const goBack = useGoBack("/articles");
   const { data: article, isLoading, isError, error } = useArticle(articleId);
   const updateMutation = useUpdateArticle();
   const { toast } = useToast();
@@ -195,9 +194,7 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-zinc-950">
         <p className="text-white">Failed to load article</p>
         <p className="text-sm text-zinc-500">{(error as Error)?.message}</p>
-        <Link href="/articles">
-          <Button variant="outline">Back to Articles</Button>
-        </Link>
+        <Button variant="outline" onClick={goBack}>Back to Articles</Button>
       </div>
     );
   }
@@ -206,13 +203,14 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
     <div className="min-h-screen bg-zinc-950 px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <Link
-            href="/articles"
+          <button
+            type="button"
+            onClick={goBack}
             className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Articles
-          </Link>
+          </button>
           <AdminProfileSection />
         </div>
 
@@ -561,11 +559,14 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
                 "Save changes"
               )}
             </Button>
-            <Link href="/articles">
-              <Button type="button" variant="outline" className="border-zinc-700 text-zinc-300">
-                Cancel
-              </Button>
-            </Link>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-zinc-700 text-zinc-300"
+              onClick={goBack}
+            >
+              Cancel
+            </Button>
           </div>
         </form>
       </div>
