@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Clock3, Eye, ThumbsUp, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useArticle } from "@/hooks/useArticles";
+import { useGoBack } from "@/hooks/useGoBack";
 import { AdminProfileSection } from "@/components/layout/AdminProfileSection";
 
 type ArticlePreviewClientProps = {
@@ -39,6 +40,7 @@ function stripImageCardsFromHtml(html: string) {
 }
 
 export function ArticlePreviewClient({ articleId }: ArticlePreviewClientProps) {
+  const goBack = useGoBack("/articles");
   const { data: article, isLoading, isError, error } = useArticle(articleId);
   const [carouselIndex, setCarouselIndex] = useState(0);
 
@@ -59,12 +61,13 @@ export function ArticlePreviewClient({ articleId }: ArticlePreviewClientProps) {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-zinc-950 p-6 text-center">
         <p className="text-lg text-white">Unable to load article</p>
         <p className="text-sm text-zinc-400">{(error as Error)?.message ?? "Unknown error"}</p>
-        <Link
-          href="/articles"
+        <button
+          type="button"
+          onClick={goBack}
           className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-200 hover:bg-zinc-800"
         >
           Back to Articles
-        </Link>
+        </button>
       </div>
     );
   }
@@ -87,13 +90,14 @@ export function ArticlePreviewClient({ articleId }: ArticlePreviewClientProps) {
       <div className="mx-auto max-w-4xl">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Link
-              href="/articles"
+            <button
+              type="button"
+              onClick={goBack}
               className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
               Back to Articles
-            </Link>
+            </button>
             <Link
               href={`/articles/${article.id}`}
               className="rounded-lg bg-[#991b1b] px-3 py-2 text-sm font-medium text-white hover:bg-[#7f1d1d]"
