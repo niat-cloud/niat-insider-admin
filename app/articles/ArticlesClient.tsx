@@ -10,7 +10,7 @@ import {
   useAuthorLeaderboard,
 } from "@/hooks/useArticles";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 import { AdminArticleCard } from "@/components/articles/AdminArticleCard";
 import { BulkActionBar } from "@/components/articles/BulkActionBar";
@@ -20,6 +20,7 @@ import { getCampusOptions } from "@/lib/api/articles";
 import type { AdminCampusOption } from "@/lib/api/articles";
 
 const PAGE_SIZE = 20;
+const SCROLL_STORAGE_KEY = "articles:scroll";
 
 const STATUS_FILTERS = [
   { value: "", label: "All" },
@@ -38,14 +39,17 @@ const STATUS_TOAST: Record<string, string> = {
 
 export function ArticlesClient() {
   const searchParams = useSearchParams();
-  const initialAuthorFilter = searchParams.get("author_id") ?? "";
-  const initialAiGeneratedFilter = searchParams.get("ai_generated") ?? "";
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [campusFilter, setCampusFilter] = useState("");
-  const [authorFilter] = useState(initialAuthorFilter);
-  const [aiGeneratedFilter, setAiGeneratedFilter] = useState(initialAiGeneratedFilter);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Seed every filter from the URL so a fresh mount (e.g. returning via
+  // Back navigation) restores exactly what the user had applied before.
+  const [search, setSearch] = useState(() => searchParams.get("search") ?? "");
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get("search") ?? "");
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get("status") ?? "");
+  const [campusFilter, setCampusFilter] = useState(() => searchParams.get("campus_id") ?? "");
+  const [authorFilter] = useState(() => searchParams.get("author_id") ?? "");
+  const [aiGeneratedFilter, setAiGeneratedFilter] = useState(() => searchParams.get("ai_generated") ?? "");
   const [campuses, setCampuses] = useState<AdminCampusOption[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectionMode, setSelectionMode] = useState(false);
@@ -55,6 +59,19 @@ export function ArticlesClient() {
     const t = setTimeout(() => setDebouncedSearch(search), 400);
     return () => clearTimeout(t);
   }, [search]);
+
+  // Mirror the active filters into the URL (replace, not push, so filter
+  // tweaks don't spam browser history) so Back navigation can restore them.
+  useEffect(() => {
+    const qs = new URLSearchParams();
+    if (debouncedSearch) qs.set("search", debouncedSearch);
+    if (statusFilter) qs.set("status", statusFilter);
+    if (campusFilter) qs.set("campus_id", campusFilter);
+    if (authorFilter) qs.set("author_id", authorFilter);
+    if (aiGeneratedFilter) qs.set("ai_generated", aiGeneratedFilter);
+    const query = qs.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [debouncedSearch, statusFilter, campusFilter, authorFilter, aiGeneratedFilter, pathname, router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -108,6 +125,34 @@ export function ArticlesClient() {
     observer.observe(el);
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Restore scroll position once the (cache-hydrated) results for this exact
+  // filter combination are back on screen, e.g. after Back navigation.
+  const scrollRestored = useRef(false);
+  useEffect(() => {
+    if (scrollRestored.current || isLoading) return;
+    scrollRestored.current = true;
+    const raw = sessionStorage.getItem(SCROLL_STORAGE_KEY);
+    if (!raw) return;
+    try {
+      const { search: savedQuery, y } = JSON.parse(raw) as { search: string; y: number };
+      if (savedQuery === window.location.search) {
+        requestAnimationFrame(() => window.scrollTo(0, y));
+      }
+    } catch {
+      // Malformed sessionStorage entry — ignore and skip restoring.
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    return () => {
+      sessionStorage.setItem(
+        SCROLL_STORAGE_KEY,
+        JSON.stringify({ search: window.location.search, y: window.scrollY })
+      );
+    };
+  }, []);
+
   const updateMutation = useUpdateArticle();
   const deleteMutation = useDeleteArticle();
   const bulkUpdate = useBulkUpdateArticles();
