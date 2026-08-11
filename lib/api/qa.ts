@@ -11,7 +11,7 @@ const ADMIN_QUESTIONS_BASE = "/api/admin/qa/questions";
 const ADMIN_ANSWERS_BASE = "/api/admin/qa/answers";
 
 export type GetQuestionsParams = {
-  status?: "pending" | "approved" | "rejected";
+  status?: "pending" | "seo_review" | "approved" | "rejected";
   category?: string;
   is_faq?: boolean;
   search?: string;
@@ -54,6 +54,14 @@ export async function rejectQuestion(
   return data;
 }
 
+/** Publishes a question that's in seo_review (SEO already generated) — makes it publicly visible. */
+export async function publishQuestion(slug: string): Promise<AdminQuestionDetail> {
+  const { data } = await api.post<AdminQuestionDetail>(
+    `${ADMIN_QUESTIONS_BASE}/${slug}/publish/`
+  );
+  return data;
+}
+
 export async function takedownQuestion(
   slug: string,
   reason?: string
@@ -71,6 +79,9 @@ export type EditQuestionPayload = Partial<{
   is_faq: boolean;
   faq_order: number;
   category: string;
+  meta_title: string;
+  meta_description: string;
+  meta_keywords: string[];
 }>;
 
 export async function editQuestion(

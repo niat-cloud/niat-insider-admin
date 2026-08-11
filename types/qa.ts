@@ -1,4 +1,4 @@
-export type QAStatus = "pending" | "approved" | "rejected";
+export type QAStatus = "pending" | "seo_review" | "approved" | "rejected";
 
 export type QAUser = {
   id: string;
@@ -26,6 +26,9 @@ export type AdminQuestionListItem = {
   answer_count: number;
   created_at: string;
   updated_at: string;
+  meta_title: string;
+  meta_description: string;
+  meta_keywords: string[];
 };
 
 export type AdminAnswer = {
@@ -55,6 +58,7 @@ export type AdminQuestionDetail = Omit<AdminQuestionListItem, "answer_count"> & 
 export type QAStatusCounts = {
   total: number;
   pending: number;
+  seo_review: number;
   approved: number;
   rejected: number;
 };
