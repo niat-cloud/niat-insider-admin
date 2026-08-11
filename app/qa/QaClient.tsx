@@ -32,6 +32,7 @@ import {
   getAdminQuestions,
   getAdminQuestion,
   approveQuestion,
+  publishQuestion,
   rejectQuestion,
   takedownQuestion,
   editQuestion,
@@ -59,7 +60,13 @@ import type {
 type ContentType = "questions" | "answers";
 type StatusFilter = QAStatus | "all";
 
-const EMPTY_COUNTS: QAStatusCounts = { total: 0, pending: 0, approved: 0, rejected: 0 };
+const EMPTY_COUNTS: QAStatusCounts = {
+  total: 0,
+  pending: 0,
+  seo_review: 0,
+  approved: 0,
+  rejected: 0,
+};
 
 function StatusBadge({ status }: { status: QAStatus }) {
   if (status === "approved") {
@@ -67,6 +74,11 @@ function StatusBadge({ status }: { status: QAStatus }) {
       <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
         Approved
       </Badge>
+    );
+  }
+  if (status === "seo_review") {
+    return (
+      <Badge className="border-sky-500/30 bg-sky-500/10 text-sky-400">SEO Review</Badge>
     );
   }
   if (status === "rejected") {
@@ -77,6 +89,13 @@ function StatusBadge({ status }: { status: QAStatus }) {
   return (
     <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-400">Pending</Badge>
   );
+}
+
+function parseKeywordsInput(value: string): string[] {
+  return value
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k.length > 0);
 }
 
 function formatDate(dateStr: string | null) {
@@ -134,6 +153,14 @@ export function QaClient() {
   const [editFaqOrder, setEditFaqOrder] = useState(0);
   const [editCategory, setEditCategory] = useState("");
 
+  // ---- SEO fields (editable independently of the content edit-mode above) ----
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
+  const [seoKeywords, setSeoKeywords] = useState("");
+  const [seoDirty, setSeoDirty] = useState(false);
+  const [seoSaving, setSeoSaving] = useState(false);
+  const [seoRefreshing, setSeoRefreshing] = useState(false);
+
   const [newAnswerBody, setNewAnswerBody] = useState("");
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -167,8 +194,8 @@ export function QaClient() {
     setError(null);
     setSelectedIds(new Set());
     try {
-      const statusParam = statusFilter === "all" ? undefined : statusFilter;
       if (contentType === "questions") {
+        const statusParam = statusFilter === "all" ? undefined : statusFilter;
         const res = await getAdminQuestions({
           status: statusParam,
           category: categoryFilter || undefined,
@@ -182,6 +209,9 @@ export function QaClient() {
         setHasNext(Boolean(res.next));
         setHasPrev(Boolean(res.previous));
       } else {
+        // Answers never have "seo_review" — a stale question-tab filter selection collapses to "all" here.
+        const statusParam =
+          statusFilter === "all" || statusFilter === "seo_review" ? undefined : statusFilter;
         const res = await getAdminAnswers({
           status: statusParam,
           search: debouncedSearch || undefined,
@@ -225,6 +255,14 @@ export function QaClient() {
     });
   };
 
+  // ---- SEO fields sync ----
+  const syncSeoFields = (q: AdminQuestionDetail) => {
+    setSeoTitle(q.meta_title ?? "");
+    setSeoDescription(q.meta_description ?? "");
+    setSeoKeywords((q.meta_keywords ?? []).join(", "));
+    setSeoDirty(false);
+  };
+
   // ---- detail open ----
   const openQuestionDetail = async (slug: string) => {
     setDetailLoading(true);
@@ -235,6 +273,7 @@ export function QaClient() {
     try {
       const detail = await getAdminQuestion(slug);
       setDetailQuestion(detail);
+      syncSeoFields(detail);
     } catch (err) {
       toast({
         title: "Couldn't load question",
@@ -262,22 +301,25 @@ export function QaClient() {
 
   // ---- single question actions ----
   const runQuestionAction = async (
-    action: "approve" | "reject" | "takedown",
+    action: "approve" | "publish" | "reject" | "takedown",
     slug: string,
     reason?: string
   ) => {
     setActionPending(true);
     try {
       if (action === "approve") await approveQuestion(slug);
+      if (action === "publish") await publishQuestion(slug);
       if (action === "reject") await rejectQuestion(slug, reason);
       if (action === "takedown") await takedownQuestion(slug, reason);
       toast({
         title:
           action === "approve"
-            ? "Question approved"
-            : action === "reject"
-              ? "Question rejected"
-              : "Question taken down",
+            ? "Sent for SEO generation"
+            : action === "publish"
+              ? "Question published"
+              : action === "reject"
+                ? "Question rejected"
+                : "Question taken down",
       });
       setRejectDraft(null);
       setRejectReason("");
@@ -291,6 +333,49 @@ export function QaClient() {
       });
     } finally {
       setActionPending(false);
+    }
+  };
+
+  // ---- SEO: manual refresh (poll for background generation) and save ----
+  const refreshSeoFields = async () => {
+    if (!detailQuestion) return;
+    setSeoRefreshing(true);
+    try {
+      const fresh = await getAdminQuestion(detailQuestion.slug);
+      setDetailQuestion(fresh);
+      syncSeoFields(fresh);
+    } catch (err) {
+      toast({
+        title: "Couldn't refresh SEO status",
+        description: qaErrorMessage(err, "Please try again."),
+        variant: "destructive",
+      });
+    } finally {
+      setSeoRefreshing(false);
+    }
+  };
+
+  const saveSeoFields = async () => {
+    if (!detailQuestion) return;
+    setSeoSaving(true);
+    try {
+      const updated = await editQuestion(detailQuestion.slug, {
+        meta_title: seoTitle.trim(),
+        meta_description: seoDescription.trim(),
+        meta_keywords: parseKeywordsInput(seoKeywords),
+      });
+      setDetailQuestion(updated);
+      syncSeoFields(updated);
+      toast({ title: "SEO fields saved" });
+      fetchList();
+    } catch (err) {
+      toast({
+        title: "Couldn't save SEO fields",
+        description: qaErrorMessage(err, "Something went wrong."),
+        variant: "destructive",
+      });
+    } finally {
+      setSeoSaving(false);
     }
   };
 
@@ -501,6 +586,9 @@ export function QaClient() {
           [
             { key: "all", label: "All", value: statusCounts.total },
             { key: "pending", label: "Pending", value: statusCounts.pending },
+            ...(contentType === "questions"
+              ? [{ key: "seo_review" as StatusFilter, label: "SEO Review", value: statusCounts.seo_review }]
+              : []),
             { key: "approved", label: "Approved", value: statusCounts.approved },
             { key: "rejected", label: "Rejected", value: statusCounts.rejected },
           ] as { key: StatusFilter; label: string; value: number }[]
@@ -559,7 +647,7 @@ export function QaClient() {
               className="gap-1.5"
             >
               <CheckCircle2 className="h-4 w-4" />
-              Approve
+              {contentType === "questions" ? "Approve for SEO" : "Approve"}
             </Button>
             <Button
               size="sm"
@@ -642,6 +730,7 @@ export function QaClient() {
                       size="sm"
                       variant="outline"
                       disabled={actionPending}
+                      title="Approve for SEO"
                       onClick={() => runQuestionAction("approve", q.slug)}
                     >
                       <CheckCircle2 className="h-4 w-4" />
@@ -879,7 +968,7 @@ export function QaClient() {
                           className="gap-1.5"
                         >
                           <CheckCircle2 className="h-4 w-4" />
-                          Approve
+                          Approve for SEO
                         </Button>
                         <Button
                           size="sm"
@@ -924,6 +1013,92 @@ export function QaClient() {
                   </>
                 )}
               </div>
+
+              {/* -------- SEO review panel: shown once a question has been sent for SEO -------- */}
+              {(detailQuestion.status === "seo_review" || detailQuestion.status === "approved") && (
+                <div className="space-y-3 rounded-md border border-sky-500/20 bg-sky-500/5 p-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-zinc-200">SEO (AI-generated)</h3>
+                    {detailQuestion.status === "seo_review" && !detailQuestion.meta_title && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={seoRefreshing}
+                        onClick={refreshSeoFields}
+                        className="gap-1.5 text-xs"
+                      >
+                        {seoRefreshing && <Loader2 className="h-3 w-3 animate-spin" />}
+                        Refresh
+                      </Button>
+                    )}
+                  </div>
+
+                  {detailQuestion.status === "seo_review" && !detailQuestion.meta_title ? (
+                    <p className="flex items-center gap-2 text-sm text-zinc-400">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Generating SEO — this usually takes a few seconds, click Refresh to check.
+                    </p>
+                  ) : (
+                    <>
+                      <div>
+                        <Label className="text-xs">Meta title</Label>
+                        <Input
+                          value={seoTitle}
+                          onChange={(e) => {
+                            setSeoTitle(e.target.value);
+                            setSeoDirty(true);
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Meta description</Label>
+                        <Textarea
+                          value={seoDescription}
+                          onChange={(e) => {
+                            setSeoDescription(e.target.value);
+                            setSeoDirty(true);
+                          }}
+                          rows={2}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Meta keywords (comma separated)</Label>
+                        <Input
+                          value={seoKeywords}
+                          onChange={(e) => {
+                            setSeoKeywords(e.target.value);
+                            setSeoDirty(true);
+                          }}
+                        />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={seoSaving || !seoDirty}
+                          onClick={saveSeoFields}
+                          className="gap-1.5"
+                        >
+                          {seoSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                          Save SEO
+                        </Button>
+                        {detailQuestion.status === "seo_review" && (
+                          <Button
+                            size="sm"
+                            disabled={actionPending || seoDirty}
+                            title={seoDirty ? "Save your SEO changes first" : undefined}
+                            onClick={() => runQuestionAction("publish", detailQuestion.slug)}
+                            className="gap-1.5"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            Publish
+                          </Button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* inline reject/takedown reason for the question itself (not a nested answer) */}
               {rejectDraft?.scope === "single" && !rejectDraft.targetAnswerId && (
