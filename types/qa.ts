@@ -34,6 +34,7 @@ export type AdminQuestionListItem = {
 export type AdminAnswer = {
   id: string;
   body: string;
+  image_url: string | null;
   status: QAStatus;
   rejection_reason: string | null;
   author: QAUser;
