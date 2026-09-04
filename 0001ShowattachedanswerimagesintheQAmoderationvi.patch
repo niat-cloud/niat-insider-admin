@@ -1,0 +1,66 @@
+
+From 9292b383b561c7a263f18ed6e7f5d2a92655f102 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 3 Sep 2026 10:10:01 +0000
+Subject: [PATCH] Show attached answer images in the Q&A moderation views
+
+Moderators need to see an answer's attached image before approving or
+rejecting it. Renders image_url (added on the backend Answer model) in
+both the question-detail answers list and the answer detail dialog.
+
+Companion frontend change for the qa.Answer.image_url backend field.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TJfCVCyPdhPH4vARuB3HLT
+---
+ app/qa/QaClient.tsx | 14 ++++++++++++++
+ types/qa.ts         |  1 +
+ 2 files changed, 15 insertions(+)
+
+diff --git a/app/qa/QaClient.tsx b/app/qa/QaClient.tsx
+index 61071fa..2a7322e 100644
+--- a/app/qa/QaClient.tsx
++++ b/app/qa/QaClient.tsx
+@@ -1159,6 +1159,13 @@ export function QaClient() {
+                         </span>
+                       </div>
+                       <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-300">{a.body}</p>
++                      {a.image_url && (
++                        <img
++                          src={a.image_url}
++                          alt="Image attached to this answer"
++                          className="mt-2 max-h-64 w-auto rounded-md border border-white/10 object-contain"
++                        />
++                      )}
+                       {a.status === "rejected" && a.rejection_reason && (
+                         <p className="mt-1 text-xs text-red-300">
+                           Reason: {a.rejection_reason}
+@@ -1304,6 +1311,13 @@ export function QaClient() {
+                 </DialogDescription>
+               </DialogHeader>
+               <p className="whitespace-pre-wrap text-sm text-zinc-300">{detailAnswer.body}</p>
++              {detailAnswer.image_url && (
++                <img
++                  src={detailAnswer.image_url}
++                  alt="Image attached to this answer"
++                  className="max-h-80 w-auto rounded-md border border-white/10 object-contain"
++                />
++              )}
+               {detailAnswer.status === "rejected" && detailAnswer.rejection_reason && (
+                 <div className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-red-300">
+                   <strong>Rejection reason:</strong> {detailAnswer.rejection_reason}
+diff --git a/types/qa.ts b/types/qa.ts
+index 6a631cb..e4561dd 100644
+--- a/types/qa.ts
++++ b/types/qa.ts
+@@ -34,6 +34,7 @@ export type AdminQuestionListItem = {
+ export type AdminAnswer = {
+   id: string;
+   body: string;
++  image_url: string | null;
+   status: QAStatus;
+   rejection_reason: string | null;
+   author: QAUser;
+-- 
+2.43.0
+
