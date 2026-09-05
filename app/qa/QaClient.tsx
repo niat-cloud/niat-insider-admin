@@ -1164,6 +1164,9 @@ export function QaClient() {
                           src={a.image_url}
                           alt="Image attached to this answer"
                           className="mt-2 max-h-64 w-auto rounded-md border border-white/10 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
                         />
                       )}
                       {a.status === "rejected" && a.rejection_reason && (
@@ -1316,6 +1319,9 @@ export function QaClient() {
                   src={detailAnswer.image_url}
                   alt="Image attached to this answer"
                   className="max-h-80 w-auto rounded-md border border-white/10 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
                 />
               )}
               {detailAnswer.status === "rejected" && detailAnswer.rejection_reason && (
