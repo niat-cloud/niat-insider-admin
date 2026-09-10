@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ChangeEvent } from "react";
 import {
   MessageCircleQuestion,
   Search,
@@ -12,6 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Pencil,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,9 +48,15 @@ import {
   createAnswerDirect,
   bulkApproveAnswers,
   bulkRejectAnswers,
+  editAnswer,
   getQuestionCategories,
   qaErrorMessage,
 } from "@/lib/api/qa";
+import {
+  getPresignedImageUploadUrl,
+  uploadImageToR2,
+  validateAnswerImageFile,
+} from "@/lib/imageUpload";
 import type {
   AdminQuestionListItem,
   AdminQuestionDetail,
@@ -110,6 +118,123 @@ function formatDate(dateStr: string | null) {
   }
 }
 
+/**
+ * Inline edit form for an answer's body + image. Shared by both places an
+ * answer renders (nested in the question detail dialog, and the standalone
+ * answer detail dialog) — available regardless of the answer's current
+ * status, since admin corrections shouldn't require re-moderation.
+ */
+function AnswerEditForm({
+  body,
+  onBodyChange,
+  imageUrl,
+  onImageSelect,
+  onRemoveImage,
+  isUploading,
+  error,
+  saving,
+  onSave,
+  onCancel,
+}: {
+  body: string;
+  onBodyChange: (value: string) => void;
+  imageUrl: string;
+  onImageSelect: (e: ChangeEvent<HTMLInputElement>) => void;
+  onRemoveImage: () => void;
+  isUploading: boolean;
+  error: string | null;
+  saving: boolean;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="mt-2 space-y-2.5 rounded-md border border-white/10 bg-black/20 p-2.5">
+      <div className="space-y-1">
+        <Label className="text-xs">Answer text</Label>
+        <Textarea
+          value={body}
+          onChange={(e) => onBodyChange(e.target.value)}
+          rows={4}
+          placeholder="Answer text..."
+        />
+      </div>
+
+      <div className="space-y-1">
+        <Label className="text-xs">Image</Label>
+        {imageUrl ? (
+          <div className="flex items-center gap-3 rounded-md border border-white/10 bg-white/[0.02] p-2">
+            <img
+              src={imageUrl}
+              alt=""
+              className="h-14 w-14 shrink-0 rounded-md border border-white/10 object-cover"
+              onError={(e) => {
+                e.currentTarget.style.visibility = "hidden";
+              }}
+            />
+            <p className="min-w-0 flex-1 truncate text-xs text-zinc-400">{imageUrl}</p>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={isUploading}
+              onClick={onRemoveImage}
+              aria-label="Remove image"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <label
+            className={`inline-flex w-fit items-center gap-1.5 rounded-md border border-white/15 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors ${
+              isUploading ? "cursor-wait opacity-70" : "cursor-pointer hover:bg-white/5"
+            }`}
+          >
+            <ImagePlus className="h-3.5 w-3.5 shrink-0" />
+            {isUploading ? "Uploading…" : "Add image"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={isUploading}
+              onChange={onImageSelect}
+            />
+          </label>
+        )}
+        {imageUrl && (
+          <label
+            className={`inline-flex w-fit items-center gap-1.5 text-xs font-medium text-zinc-400 underline underline-offset-2 ${
+              isUploading ? "cursor-wait opacity-70" : "cursor-pointer hover:text-zinc-200"
+            }`}
+          >
+            {isUploading ? "Uploading…" : "Replace image"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={isUploading}
+              onChange={onImageSelect}
+            />
+          </label>
+        )}
+        {error && <p className="text-xs text-red-400">{error}</p>}
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          disabled={saving || isUploading || body.trim().length === 0}
+          onClick={onSave}
+        >
+          {saving ? "Saving..." : "Save"}
+        </Button>
+        <Button size="sm" variant="ghost" disabled={saving} onClick={onCancel}>
+          Cancel
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function QaClient() {
   const { toast } = useToast();
 
@@ -162,6 +287,13 @@ export function QaClient() {
   const [seoRefreshing, setSeoRefreshing] = useState(false);
 
   const [newAnswerBody, setNewAnswerBody] = useState("");
+
+  // ---- answer edit (body + image; available regardless of the answer's status) ----
+  const [answerEditId, setAnswerEditId] = useState<string | null>(null);
+  const [editAnswerBody, setEditAnswerBody] = useState("");
+  const [editAnswerImageUrl, setEditAnswerImageUrl] = useState<string>("");
+  const [isUploadingAnswerImage, setIsUploadingAnswerImage] = useState(false);
+  const [answerImageError, setAnswerImageError] = useState<string | null>(null);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createTitle, setCreateTitle] = useState("");
@@ -474,6 +606,72 @@ export function QaClient() {
       setEditMode(false);
       await refreshDetailQuestion();
       fetchList();
+    } catch (err) {
+      toast({
+        title: "Update failed",
+        description: qaErrorMessage(err, "Something went wrong."),
+        variant: "destructive",
+      });
+    } finally {
+      setActionPending(false);
+    }
+  };
+
+  // ---- answer edit (body + image) — available regardless of pending/approved/rejected ----
+  const startAnswerEdit = (a: AdminAnswer) => {
+    setAnswerEditId(a.id);
+    setEditAnswerBody(a.body);
+    setEditAnswerImageUrl(a.image_url ?? "");
+    setAnswerImageError(null);
+  };
+
+  const cancelAnswerEdit = () => {
+    setAnswerEditId(null);
+    setEditAnswerBody("");
+    setEditAnswerImageUrl("");
+    setAnswerImageError(null);
+  };
+
+  const handleAnswerEditImageSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    const validationError = validateAnswerImageFile(file);
+    if (validationError) {
+      setAnswerImageError(validationError);
+      return;
+    }
+
+    setAnswerImageError(null);
+    setIsUploadingAnswerImage(true);
+    try {
+      const { upload_url, public_url } = await getPresignedImageUploadUrl(
+        file.name,
+        file.type || "application/octet-stream"
+      );
+      await uploadImageToR2(upload_url, file);
+      setEditAnswerImageUrl(public_url);
+    } catch (err) {
+      setAnswerImageError(qaErrorMessage(err, "Image upload failed. Please try again."));
+    } finally {
+      setIsUploadingAnswerImage(false);
+    }
+  };
+
+  const saveAnswerEdit = async (fromQuestionDetail: boolean) => {
+    if (!answerEditId) return;
+    setActionPending(true);
+    try {
+      const updated = await editAnswer(answerEditId, {
+        body: editAnswerBody,
+        image_url: editAnswerImageUrl,
+      });
+      toast({ title: "Answer updated" });
+      cancelAnswerEdit();
+      if (fromQuestionDetail) await refreshDetailQuestion();
+      else fetchList();
+      if (detailAnswer?.id === updated.id) setDetailAnswer(updated);
     } catch (err) {
       toast({
         title: "Update failed",
@@ -1158,68 +1356,95 @@ export function QaClient() {
                           @{a.author?.username ?? "unknown"} &middot; {formatDate(a.created_at)}
                         </span>
                       </div>
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-300">{a.body}</p>
-                      {a.image_url && (
-                        <img
-                          src={a.image_url}
-                          alt="Image attached to this answer"
-                          className="mt-2 max-h-64 w-auto rounded-md border border-white/10 object-contain"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                          }}
+                      {answerEditId === a.id ? (
+                        <AnswerEditForm
+                          body={editAnswerBody}
+                          onBodyChange={setEditAnswerBody}
+                          imageUrl={editAnswerImageUrl}
+                          onImageSelect={handleAnswerEditImageSelect}
+                          onRemoveImage={() => setEditAnswerImageUrl("")}
+                          isUploading={isUploadingAnswerImage}
+                          error={answerImageError}
+                          saving={actionPending}
+                          onSave={() => saveAnswerEdit(true)}
+                          onCancel={cancelAnswerEdit}
                         />
-                      )}
-                      {a.status === "rejected" && a.rejection_reason && (
-                        <p className="mt-1 text-xs text-red-300">
-                          Reason: {a.rejection_reason}
-                        </p>
-                      )}
-                      <div className="mt-2 flex gap-1.5">
-                        {a.status === "pending" && (
-                          <>
+                      ) : (
+                        <>
+                          <p className="mt-1 whitespace-pre-wrap text-sm text-zinc-300">{a.body}</p>
+                          {a.image_url && (
+                            <img
+                              src={a.image_url}
+                              alt="Image attached to this answer"
+                              className="mt-2 max-h-64 w-auto rounded-md border border-white/10 object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          )}
+                          {a.status === "rejected" && a.rejection_reason && (
+                            <p className="mt-1 text-xs text-red-300">
+                              Reason: {a.rejection_reason}
+                            </p>
+                          )}
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {a.status === "pending" && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={actionPending}
+                                  onClick={() => runAnswerAction("approve", a.id, undefined, true)}
+                                >
+                                  Approve
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-400"
+                                  disabled={actionPending}
+                                  onClick={() =>
+                                    setRejectDraft({
+                                      kind: "reject",
+                                      scope: "single",
+                                      targetAnswerId: a.id,
+                                    })
+                                  }
+                                >
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                            {a.status === "approved" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-400"
+                                disabled={actionPending}
+                                onClick={() =>
+                                  setRejectDraft({
+                                    kind: "takedown",
+                                    scope: "single",
+                                    targetAnswerId: a.id,
+                                  })
+                                }
+                              >
+                                Take down
+                              </Button>
+                            )}
                             <Button
                               size="sm"
-                              variant="outline"
+                              variant="ghost"
+                              className="gap-1.5"
                               disabled={actionPending}
-                              onClick={() => runAnswerAction("approve", a.id, undefined, true)}
+                              onClick={() => startAnswerEdit(a)}
                             >
-                              Approve
+                              <Pencil className="h-3.5 w-3.5" />
+                              Edit
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-400"
-                              disabled={actionPending}
-                              onClick={() =>
-                                setRejectDraft({
-                                  kind: "reject",
-                                  scope: "single",
-                                  targetAnswerId: a.id,
-                                })
-                              }
-                            >
-                              Reject
-                            </Button>
-                          </>
-                        )}
-                        {a.status === "approved" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-400"
-                            disabled={actionPending}
-                            onClick={() =>
-                              setRejectDraft({
-                                kind: "takedown",
-                                scope: "single",
-                                targetAnswerId: a.id,
-                              })
-                            }
-                          >
-                            Take down
-                          </Button>
-                        )}
-                      </div>
+                          </div>
+                        </>
+                      )}
 
                       {rejectDraft?.scope === "single" && rejectDraft.targetAnswerId === a.id && (
                         <div className="mt-2 space-y-2 rounded-md border border-white/10 bg-black/20 p-2.5">
@@ -1313,55 +1538,82 @@ export function QaClient() {
                   {formatDate(detailAnswer.created_at)}
                 </DialogDescription>
               </DialogHeader>
-              <p className="whitespace-pre-wrap text-sm text-zinc-300">{detailAnswer.body}</p>
-              {detailAnswer.image_url && (
-                <img
-                  src={detailAnswer.image_url}
-                  alt="Image attached to this answer"
-                  className="max-h-80 w-auto rounded-md border border-white/10 object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
+              {answerEditId === detailAnswer.id ? (
+                <AnswerEditForm
+                  body={editAnswerBody}
+                  onBodyChange={setEditAnswerBody}
+                  imageUrl={editAnswerImageUrl}
+                  onImageSelect={handleAnswerEditImageSelect}
+                  onRemoveImage={() => setEditAnswerImageUrl("")}
+                  isUploading={isUploadingAnswerImage}
+                  error={answerImageError}
+                  saving={actionPending}
+                  onSave={() => saveAnswerEdit(false)}
+                  onCancel={cancelAnswerEdit}
                 />
-              )}
-              {detailAnswer.status === "rejected" && detailAnswer.rejection_reason && (
-                <div className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-red-300">
-                  <strong>Rejection reason:</strong> {detailAnswer.rejection_reason}
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {detailAnswer.status === "pending" && (
-                  <>
+              ) : (
+                <>
+                  <p className="whitespace-pre-wrap text-sm text-zinc-300">{detailAnswer.body}</p>
+                  {detailAnswer.image_url && (
+                    <img
+                      src={detailAnswer.image_url}
+                      alt="Image attached to this answer"
+                      className="max-h-80 w-auto rounded-md border border-white/10 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  )}
+                  {detailAnswer.status === "rejected" && detailAnswer.rejection_reason && (
+                    <div className="rounded-md border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-red-300">
+                      <strong>Rejection reason:</strong> {detailAnswer.rejection_reason}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {detailAnswer.status === "pending" && (
+                      <>
+                        <Button
+                          size="sm"
+                          disabled={actionPending}
+                          onClick={() => runAnswerAction("approve", detailAnswer.id)}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-400"
+                          disabled={actionPending}
+                          onClick={() => setRejectDraft({ kind: "reject", scope: "single" })}
+                        >
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                    {detailAnswer.status === "approved" && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-400"
+                        disabled={actionPending}
+                        onClick={() => setRejectDraft({ kind: "takedown", scope: "single" })}
+                      >
+                        Take down
+                      </Button>
+                    )}
                     <Button
                       size="sm"
+                      variant="ghost"
+                      className="gap-1.5"
                       disabled={actionPending}
-                      onClick={() => runAnswerAction("approve", detailAnswer.id)}
+                      onClick={() => startAnswerEdit(detailAnswer)}
                     >
-                      Approve
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-red-400"
-                      disabled={actionPending}
-                      onClick={() => setRejectDraft({ kind: "reject", scope: "single" })}
-                    >
-                      Reject
-                    </Button>
-                  </>
-                )}
-                {detailAnswer.status === "approved" && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-red-400"
-                    disabled={actionPending}
-                    onClick={() => setRejectDraft({ kind: "takedown", scope: "single" })}
-                  >
-                    Take down
-                  </Button>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
               {rejectDraft?.scope === "single" && !rejectDraft.targetAnswerId && (
                 <div className="space-y-2 rounded-md border border-white/10 p-3">
                   <Textarea
