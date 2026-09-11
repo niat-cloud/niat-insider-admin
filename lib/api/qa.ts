@@ -171,10 +171,20 @@ export async function takedownAnswer(id: string, reason?: string): Promise<Admin
   return data;
 }
 
-export async function editAnswer(id: string, body: string): Promise<AdminAnswer> {
-  const { data } = await api.patch<AdminAnswer>(`${ADMIN_ANSWERS_BASE}/${id}/edit/`, {
-    body,
-  });
+export type EditAnswerPayload = Partial<{
+  body: string;
+  /** Pass "" to remove the attached image. */
+  image_url: string;
+}>;
+
+export async function editAnswer(
+  id: string,
+  payload: EditAnswerPayload
+): Promise<AdminAnswer> {
+  const { data } = await api.patch<AdminAnswer>(
+    `${ADMIN_ANSWERS_BASE}/${id}/edit/`,
+    payload
+  );
   return data;
 }
 
