@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import {
   cleanBodyHtml,
   cleanPastedHtml,
-  hasUnsupportedMarkup,
+  hasLayoutTemplate,
   prepareBodyForEditor,
 } from "@/lib/articleBody";
 import styles from "./RichTextEditor.module.css";
@@ -115,8 +115,10 @@ export function RichTextEditor({
   minHeight = "320px",
   onCleaned,
 }: RichTextEditorProps) {
-  // Bodies with layout markup the visual editor would strip are edited as HTML.
-  const lockedToHtml = hasUnsupportedMarkup(value);
+  // Designed layouts (ni-* templates, tables, embeds) open as HTML so their
+  // styling isn't lost by accident. Everything else uses the normal editor.
+  const lockedToHtml = hasLayoutTemplate(value);
+  const [confirmConvert, setConfirmConvert] = useState(false);
   const [htmlChosen, setHtmlChosen] = useState(false);
   const htmlMode = lockedToHtml || htmlChosen;
   const [linkOpen, setLinkOpen] = useState(false);
@@ -158,6 +160,15 @@ export function RichTextEditor({
       editor.commands.setContent(prepared, false);
     }
   }, [value, editor, htmlMode]);
+
+  // Turns a designed layout into normal formatted text the admin can edit.
+  const convertToNormal = useCallback(() => {
+    if (!editor) return;
+    editor.commands.setContent(prepareBodyForEditor(value), false);
+    setHtmlChosen(false);
+    setConfirmConvert(false);
+    onChange(editor.getHTML());
+  }, [editor, value, onChange]);
 
   const switchToVisual = useCallback(() => {
     if (!editor || lockedToHtml) return;
@@ -306,7 +317,7 @@ export function RichTextEditor({
             aria-pressed={htmlMode}
             onClick={() => (htmlMode ? switchToVisual() : setHtmlChosen(true))}
             disabled={htmlMode && lockedToHtml}
-            title={lockedToHtml ? "This article uses layout HTML the visual editor can't keep" : "Edit the raw HTML"}
+            title={lockedToHtml ? "Use \"Switch to normal editor\" below to edit this article as normal text" : "Edit the raw HTML"}
             className={cn(
               "inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs hover:bg-zinc-700/70 hover:text-white disabled:cursor-not-allowed",
               htmlMode ? "bg-zinc-700 text-white" : "text-zinc-300"
@@ -361,9 +372,32 @@ export function RichTextEditor({
       {htmlMode ? (
         <div>
           {lockedToHtml && (
-            <p className="border-b border-amber-900/50 bg-amber-950/30 px-4 py-2 text-xs text-amber-200">
-              This article uses layout HTML (custom blocks, classes or styles) that the visual editor would remove, so it opens in HTML mode. Check your changes in the preview.
-            </p>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-amber-900/50 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">
+              {confirmConvert ? (
+                <>
+                  <p className="min-w-0 flex-1">
+                    All the text, headings, lists and links stay. The designed boxes, colours and quote styles are removed. Check the preview, and leave without saving if you change your mind.
+                  </p>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={convertToNormal} className="h-8 rounded-md bg-[#991b1b] px-3 text-xs font-semibold text-white hover:bg-[#7f1d1d]">
+                      Yes, switch
+                    </button>
+                    <button type="button" onClick={() => setConfirmConvert(false)} className="h-8 rounded-md px-3 text-xs text-amber-200 hover:bg-amber-900/40 hover:text-white">
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="min-w-0 flex-1">
+                    This article uses a designed layout (highlight boxes, styled quotes or tables), so it is shown as HTML to keep that design.
+                  </p>
+                  <button type="button" onClick={() => setConfirmConvert(true)} className="h-8 shrink-0 rounded-md bg-amber-500 px-3 text-xs font-semibold text-zinc-950 hover:bg-amber-400">
+                    Switch to normal editor
+                  </button>
+                </>
+              )}
+            </div>
           )}
           <textarea
             aria-label="Article body HTML"

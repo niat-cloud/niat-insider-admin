@@ -13,16 +13,19 @@ export const PUBLIC_SITE_URL = (
 export const MIN_RECOMMENDED_WORDS = 450;
 
 /**
- * Markup the visual editor cannot represent (custom layout blocks such as the
- * generated `ni-*` article templates, inline styles, tables, embeds). Loading
- * such a body into TipTap and saving it would silently strip that markup, so
- * the editor opens these articles in HTML mode instead.
+ * Designed layouts the visual editor cannot represent: the generated `ni-*`
+ * article templates (highlight boxes, styled quotes, arrow lists), tables and
+ * embeds. These open in HTML mode so their styling isn't lost by accident;
+ * the admin can still switch them to the normal editor.
+ *
+ * Stray classes, ids, inline styles and spans left by copy-paste (for
+ * example `class="isSelectedEnd"`) are not layout and do not count: the
+ * normal editor simply drops them.
  */
-const UNSUPPORTED_MARKUP =
-  /<(div|section|article|aside|table|figure|iframe|video|style|span|font)\b|\s(class|style)\s*=/i;
+const LAYOUT_TEMPLATE = /\sclass\s*=\s*["'][^"']*\bni-[a-z]|<(table|iframe|video|style)\b/i;
 
-export function hasUnsupportedMarkup(html: string): boolean {
-  return UNSUPPORTED_MARKUP.test(html || "");
+export function hasLayoutTemplate(html: string): boolean {
+  return LAYOUT_TEMPLATE.test(html || "");
 }
 
 /** Same rule the public site applies before rendering: the title is the page's only H1. */
@@ -129,14 +132,33 @@ export function cleanBodyHtml(html: string): { html: string; removed: number } {
 }
 
 /**
- * Prepares stored HTML for the visual editor, which only knows H2–H4:
- * H1 becomes H2 (as on the public site) and H5/H6 become H4, so no heading
- * is turned into a plain paragraph on load.
+ * Prepares stored HTML for the visual editor:
+ * - removes `article-image-card` blocks (the public site hides them; their
+ *   images are already in the article's image list),
+ * - strips classes, ids and inline styles left by copy-paste,
+ * - maps H1 to H2 (as the public site does) and H5/H6 to H4, so no heading
+ *   turns into a plain paragraph.
+ * Text, links, lists, bold and other formatting are kept.
  */
 export function prepareBodyForEditor(html: string): string {
-  return demoteH1(html || "")
-    .replace(/<h[56](\s[^>]*)?>/gi, "<h4$1>")
-    .replace(/<\/h[56]>/gi, "</h4>");
+  const root = parse(demoteH1(html || ""));
+  if (!root) {
+    return demoteH1(html || "")
+      .replace(/<h[56](\s[^>]*)?>/gi, "<h4$1>")
+      .replace(/<\/h[56]>/gi, "</h4>");
+  }
+  root.querySelectorAll(".article-image-card").forEach((el) => el.remove());
+  root.querySelectorAll("[class], [style], [id]").forEach((el) => {
+    el.removeAttribute("class");
+    el.removeAttribute("style");
+    el.removeAttribute("id");
+  });
+  root.querySelectorAll("h5, h6").forEach((el) => {
+    const h4 = document.createElement("h4");
+    h4.append(...Array.from(el.childNodes));
+    el.replaceWith(h4);
+  });
+  return root.innerHTML;
 }
 
 export type BodyStats = {
