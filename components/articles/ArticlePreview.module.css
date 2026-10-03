@@ -1,0 +1,231 @@
+/*
+ * Public-site article styles, copied so the admin preview shows what readers
+ * see on niatinsider.com. Source of truth: niatinsider/src/app/globals.css and
+ * src/app/article/[slug]/ArticleDetailPageClient.tsx.
+ *
+ * The live site loads Tailwind v4's reset and its `prose prose-lg` classes have
+ * no typography plugin behind them, so headings keep the body font size,
+ * lists have no markers and paragraphs have no spacing. This file mirrors that
+ * on purpose. When the live site gains real body styles, update them here.
+ */
+
+.page {
+  background: #ffffff;
+  color: #000000;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page h1,
+.page h2,
+.page h3,
+.page h4,
+.page h5,
+.page h6 {
+  font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.display {
+  font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Article body: the reset leaves everything flat, as on the live site. */
+.body :global(*) {
+  margin: 0;
+}
+
+.body :global(h1),
+.body :global(h2),
+.body :global(h3),
+.body :global(h4),
+.body :global(h5),
+.body :global(h6) {
+  font-size: inherit;
+}
+
+.body :global(ul),
+.body :global(ol) {
+  list-style: none;
+  padding: 0;
+}
+
+.body :global(blockquote) {
+  border: 0;
+  padding: 0;
+  font-style: normal;
+}
+
+.body :global(hr) {
+  border: 0;
+  border-top: 1px solid currentColor;
+  height: 0;
+  color: inherit;
+}
+
+.body :global(img) {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.body :global(a) {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.body :global(a:hover) {
+  color: #1d4ed8;
+}
+
+.body :global(.article-image-card) {
+  display: none;
+}
+
+/* NIAT Insider article templates (ni-*), as on the live site */
+.body :global(.ni-article) {
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.8;
+  color: #111827;
+  font-family: "Inter", sans-serif;
+}
+
+.body :global(.ni-intro) {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  border-left: 4px solid #991b1b;
+  padding-left: 1.5rem;
+}
+
+.body :global(.ni-h2) {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-top: 3.5rem;
+  margin-bottom: 1.5rem;
+  color: #111827;
+  font-family: "Poppins", sans-serif;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.body :global(.ni-para) {
+  font-size: 1.15rem;
+  margin-bottom: 1.75rem;
+  color: #374151;
+  line-height: 1.8;
+}
+
+.body :global(.ni-highlight) {
+  background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
+  border: 1px solid rgba(153, 27, 27, 0.08);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  margin: 3rem 0;
+  box-shadow: 0 10px 15px -3px rgba(153, 27, 27, 0.04);
+}
+
+.body :global(.ni-highlight p) {
+  margin-bottom: 0;
+  font-weight: 600;
+  color: #991b1b;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.body :global(.ni-list) {
+  margin-bottom: 2rem;
+  padding-left: 0.5rem;
+  list-style-type: none;
+}
+
+.body :global(.ni-list-item) {
+  position: relative;
+  padding-left: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.15rem;
+  color: #374151;
+}
+
+.body :global(.ni-list-item)::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.body :global(.ni-quote) {
+  font-family: "Playfair Display", serif;
+  font-size: 1.75rem;
+  font-style: italic;
+  color: #4b5563;
+  border-left: 5px solid #f7b801;
+  padding-left: 2.5rem;
+  margin: 4rem 0;
+  position: relative;
+  line-height: 1.4;
+}
+
+.body :global(.ni-author-note) {
+  margin-top: 4rem;
+  padding: 2rem;
+  background-color: #f9fafb;
+  border-radius: 1rem;
+  border-left: 4px solid #e5e7eb;
+  font-style: italic;
+  color: #6b7280;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.body :global(.ni-tag) {
+  display: inline-block;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+/* Visible FAQ block (ArticleFaqSection on the live site) */
+.faq h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.faq p {
+  color: #334155;
+  line-height: 1.625;
+}
+
+.faq > div > div {
+  padding: 1rem 0;
+}
+
+.faq > div > div + div {
+  border-top: 1px solid rgba(30, 41, 59, 0.08);
+}
+
+.mobile .faq h3 {
+  font-size: 1rem;
+}
+
+@media (min-width: 768px) {
+  .desktop .faq h3 {
+    font-size: 1.125rem;
+  }
+}
