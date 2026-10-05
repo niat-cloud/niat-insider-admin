@@ -1,12 +1,8 @@
 /*
  * Public-site article styles, copied so the admin preview shows what readers
- * see on niatinsider.com. Source of truth: niatinsider/src/app/globals.css and
- * src/app/article/[slug]/ArticleDetailPageClient.tsx.
- *
- * The live site loads Tailwind v4's reset and its `prose prose-lg` classes have
- * no typography plugin behind them, so headings keep the body font size,
- * lists have no markers and paragraphs have no spacing. This file mirrors that
- * on purpose. When the live site gains real body styles, update them here.
+ * see on niatinsider.com. Source of truth: niatinsider/src/app/globals.css
+ * (the "Article body typography" block and the ni-* template rules) and
+ * src/app/article/[slug]/ArticleDetailPageClient.tsx. Keep them in sync.
  */
 
 .page {
@@ -33,39 +29,6 @@
   font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Article body: the reset leaves everything flat, as on the live site. */
-.body :global(*) {
-  margin: 0;
-}
-
-.body :global(h1),
-.body :global(h2),
-.body :global(h3),
-.body :global(h4),
-.body :global(h5),
-.body :global(h6) {
-  font-size: inherit;
-}
-
-.body :global(ul),
-.body :global(ol) {
-  list-style: none;
-  padding: 0;
-}
-
-.body :global(blockquote) {
-  border: 0;
-  padding: 0;
-  font-style: normal;
-}
-
-.body :global(hr) {
-  border: 0;
-  border-top: 1px solid currentColor;
-  height: 0;
-  color: inherit;
-}
-
 .body :global(img) {
   max-width: 100%;
   height: auto;
@@ -83,6 +46,114 @@
 
 .body :global(.article-image-card) {
   display: none;
+}
+
+/*
+ * Article body typography, as on the live site. Zero-specificity :where()
+ * selectors that skip the ni-* templates, so their class rules still win.
+ * Kept before the ni-* rules so equal-specificity template rules come last.
+ */
+.body {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.page .body :where(p):not(:where(:global(.ni-article) *)) {
+  margin: 0 0 1.25em;
+}
+
+.page .body :where(h2, h3, h4):not(:where(:global(.ni-article) *)) {
+  color: #111827;
+  line-height: 1.3;
+}
+
+.page .body :where(h2):not(:where(:global(.ni-article) *)) {
+  font-size: 1.625em;
+  font-weight: 700;
+  margin: 2em 0 0.75em;
+}
+
+.page .body :where(h3):not(:where(:global(.ni-article) *)) {
+  font-size: 1.3em;
+  margin: 1.75em 0 0.6em;
+}
+
+.page .body :where(h4):not(:where(:global(.ni-article) *)) {
+  font-size: 1.1em;
+  margin: 1.5em 0 0.5em;
+}
+
+.page .body :where(ul, ol):not(:where(:global(.ni-article) *)) {
+  margin: 0 0 1.25em;
+  padding-left: 1.5em;
+}
+
+.page .body :where(ul):not(:where(:global(.ni-article) *)) {
+  list-style: disc;
+}
+
+.page .body :where(ol):not(:where(:global(.ni-article) *)) {
+  list-style: decimal;
+}
+
+.page .body :where(li):not(:where(:global(.ni-article) *)) {
+  margin: 0.4em 0;
+  padding-left: 0.25em;
+}
+
+.page .body :where(li)::marker {
+  color: #991b1b;
+}
+
+.page .body :where(li > p, li > ul, li > ol):not(:where(:global(.ni-article) *)) {
+  margin: 0;
+}
+
+.page .body :where(blockquote):not(:where(:global(.ni-article) *)) {
+  margin: 1.5em 0;
+  padding-left: 1em;
+  border-left: 3px solid #991b1b;
+  color: #374151;
+  font-style: italic;
+}
+
+.page .body :where(hr):not(:where(:global(.ni-article) *)) {
+  margin: 2em 0;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.page .body :where(img):not(:where(:global(.ni-article) *)) {
+  margin: 1.5em auto;
+  border-radius: 0.5rem;
+}
+
+.page .body :where(code):not(:where(:global(.ni-article) *)) {
+  background: #f3f4f6;
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+
+.page .body :where(pre):not(:where(:global(.ni-article) *)) {
+  margin: 0 0 1.25em;
+  padding: 0.75em 1em;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+}
+
+.page .body :where(pre code) {
+  background: none;
+  padding: 0;
+}
+
+.body > :first-child {
+  margin-top: 0;
+}
+
+.body > :last-child {
+  margin-bottom: 0;
 }
 
 /* NIAT Insider article templates (ni-*), as on the live site */
