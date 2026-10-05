@@ -115,8 +115,10 @@ export function RichTextEditor({
   minHeight = "320px",
   onCleaned,
 }: RichTextEditorProps) {
-  // Bodies with layout markup the visual editor would strip are edited as HTML.
-  const lockedToHtml = hasUnsupportedMarkup(value);
+  // Bodies with layout markup the visual editor would strip open as HTML,
+  // unless the admin chooses to switch anyway.
+  const [forcedVisual, setForcedVisual] = useState(false);
+  const lockedToHtml = hasUnsupportedMarkup(value) && !forcedVisual;
   const [htmlChosen, setHtmlChosen] = useState(false);
   const htmlMode = lockedToHtml || htmlChosen;
   const [linkOpen, setLinkOpen] = useState(false);
@@ -160,10 +162,22 @@ export function RichTextEditor({
   }, [value, editor, htmlMode]);
 
   const switchToVisual = useCallback(() => {
-    if (!editor || lockedToHtml) return;
+    if (!editor) return;
+    if (lockedToHtml) {
+      const ok = window.confirm(
+        "This article uses a custom layout (template blocks, tables or embeds). The visual editor keeps the text but removes that layout. Switch anyway?"
+      );
+      if (!ok) return;
+      setForcedVisual(true);
+      editor.commands.setContent(prepareBodyForEditor(value), false);
+      setHtmlChosen(false);
+      // Save what the visual editor kept, so the body matches what is shown.
+      onChange(editor.getHTML());
+      return;
+    }
     editor.commands.setContent(prepareBodyForEditor(value), false);
     setHtmlChosen(false);
-  }, [editor, lockedToHtml, value]);
+  }, [editor, lockedToHtml, value, onChange]);
 
   const openLink = useCallback(() => {
     if (!editor) return;
@@ -305,8 +319,13 @@ export function RichTextEditor({
             type="button"
             aria-pressed={htmlMode}
             onClick={() => (htmlMode ? switchToVisual() : setHtmlChosen(true))}
-            disabled={htmlMode && lockedToHtml}
-            title={lockedToHtml ? "This article uses layout HTML the visual editor can't keep" : "Edit the raw HTML"}
+            title={
+              lockedToHtml
+                ? "Switch to the visual editor (removes the custom layout)"
+                : htmlMode
+                  ? "Back to the visual editor"
+                  : "Edit the raw HTML"
+            }
             className={cn(
               "inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs hover:bg-zinc-700/70 hover:text-white disabled:cursor-not-allowed",
               htmlMode ? "bg-zinc-700 text-white" : "text-zinc-300"
@@ -362,7 +381,7 @@ export function RichTextEditor({
         <div>
           {lockedToHtml && (
             <p className="border-b border-amber-900/50 bg-amber-950/30 px-4 py-2 text-xs text-amber-200">
-              This article uses layout HTML (custom blocks, classes or styles) that the visual editor would remove, so it opens in HTML mode. Check your changes in the preview.
+              This article uses a custom layout (template blocks, tables or embeds) that the visual editor would remove, so it opens in HTML mode. Check your changes in the preview, or click HTML to switch to the visual editor anyway.
             </p>
           )}
           <textarea
