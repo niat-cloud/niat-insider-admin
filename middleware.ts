@@ -8,6 +8,11 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("admin_access_token")?.value;
   const { pathname } = request.nextUrl;
 
+  // The login API route is called before any session cookie exists.
+  if (pathname === "/api/login") {
+    return NextResponse.next();
+  }
+
   if (pathname === LOGIN_PATH) {
     if (token) {
       return NextResponse.redirect(new URL(ARTICLES_PATH, request.url));
