@@ -30,7 +30,7 @@ async function refreshAccessToken(): Promise<string | null> {
   if (!refresh) return null;
 
   try {
-    const { data } = await axios.post<{ access: string }>(
+    const { data } = await axios.post<{ access: string; refresh?: string }>(
       `${baseURL}/api/token/refresh/`,
       { refresh },
       { headers: { "Content-Type": "application/json" } }
@@ -38,6 +38,11 @@ async function refreshAccessToken(): Promise<string | null> {
     const newAccess = data?.access;
     if (newAccess) {
       localStorage.setItem("admin_access_token", newAccess);
+      // The backend rotates refresh tokens and blacklists the old one, so the
+      // new one must be stored or the next refresh fails and logs the admin out.
+      if (data.refresh) {
+        localStorage.setItem("admin_refresh_token", data.refresh);
+      }
       setAdminAccessCookie(newAccess);
       return newAccess;
     }

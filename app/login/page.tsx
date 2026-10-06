@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import axios from "axios";
 import api from "@/lib/axios";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -75,8 +76,10 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const { data } = await api.post<{ access: string; refresh: string }>(
-        "/api/auth/login/phone/",
+      // Same-origin route: it extracts the refresh token that Django only
+      // sends as a cookie, so the session can be refreshed (see app/api/login).
+      const { data } = await axios.post<{ access: string; refresh: string }>(
+        "/api/login",
         { phone_number: phone.trim(), code }
       );
       const me = await api.get<{ role?: string }>("/api/auth/me/", {
