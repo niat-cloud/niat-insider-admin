@@ -55,11 +55,11 @@
  */
 .body {
   font-size: 1.0625rem;
-  line-height: 1.75;
+  line-height: 1.7;
 }
 
 .page .body :where(p):not(:where(:global(.ni-article) *)) {
-  margin: 0 0 1.25em;
+  margin: 0 0 0.85em;
 }
 
 .page .body :where(h2, h3, h4):not(:where(:global(.ni-article) *)) {
@@ -70,21 +70,21 @@
 .page .body :where(h2):not(:where(:global(.ni-article) *)) {
   font-size: 1.625em;
   font-weight: 700;
-  margin: 2em 0 0.75em;
+  margin: 1.6em 0 0.55em;
 }
 
 .page .body :where(h3):not(:where(:global(.ni-article) *)) {
   font-size: 1.3em;
-  margin: 1.75em 0 0.6em;
+  margin: 1.4em 0 0.45em;
 }
 
 .page .body :where(h4):not(:where(:global(.ni-article) *)) {
   font-size: 1.1em;
-  margin: 1.5em 0 0.5em;
+  margin: 1.2em 0 0.4em;
 }
 
 .page .body :where(ul, ol):not(:where(:global(.ni-article) *)) {
-  margin: 0 0 1.25em;
+  margin: 0 0 0.85em;
   padding-left: 1.5em;
 }
 
@@ -97,7 +97,7 @@
 }
 
 .page .body :where(li):not(:where(:global(.ni-article) *)) {
-  margin: 0.4em 0;
+  margin: 0.25em 0;
   padding-left: 0.25em;
 }
 
@@ -110,7 +110,7 @@
 }
 
 .page .body :where(blockquote):not(:where(:global(.ni-article) *)) {
-  margin: 1.5em 0;
+  margin: 1.2em 0;
   padding-left: 1em;
   border-left: 3px solid #991b1b;
   color: #374151;
@@ -118,13 +118,13 @@
 }
 
 .page .body :where(hr):not(:where(:global(.ni-article) *)) {
-  margin: 2em 0;
+  margin: 1.6em 0;
   border: 0;
   border-top: 1px solid #e5e7eb;
 }
 
 .page .body :where(img):not(:where(:global(.ni-article) *)) {
-  margin: 1.5em auto;
+  margin: 1.25em auto;
   border-radius: 0.5rem;
 }
 
@@ -136,7 +136,7 @@
 }
 
 .page .body :where(pre):not(:where(:global(.ni-article) *)) {
-  margin: 0 0 1.25em;
+  margin: 0 0 0.85em;
   padding: 0.75em 1em;
   background: #f3f4f6;
   border-radius: 0.5rem;
