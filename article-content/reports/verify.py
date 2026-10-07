@@ -20,8 +20,9 @@ def expected(sec):
         in_callout = False
         if re.fullmatch(r"\*\(.*\)\*", l) or l == "---" or re.match(r"^\|[\s|:-]+\|$", l): continue
         if l == "**FAQs**": l = "Frequently Asked Questions"
-        l = re.sub(r"^#{4,5} H[23]:\s*", "", l)
-        l = re.sub(r"^([-*]|\d+[.)]|>)\s+", "", l)
+        l, heading = re.subn(r"^#{4,5} H[23]:\s*", "", l)
+        if not heading:
+            l = re.sub(r"^([-*]|\d+[.)]|>)\s+", "", l)
         l = l.replace("|", " ").replace("**", "")
         l = re.sub(r"(?<![*\w])\*(?!\s)(.+?)(?<!\s)\*(?![*\w])", r"\1", l)
         keep.append(l)
