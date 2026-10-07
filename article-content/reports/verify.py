@@ -12,6 +12,7 @@ def words(s):
     return re.findall(r"[^\s]+", s)
 
 def expected(sec):
+    sec = re.sub(r"\s*\*\(Editor:.*?\)\*", "", sec, flags=re.S)
     keep, in_callout = [], False
     for raw in sec.split("\n"):
         l = re.sub(r"\s*\*\(Editor:.*?\)\*", "", raw.strip()).strip()

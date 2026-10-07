@@ -176,5 +176,26 @@
         }
       ]
     }
+  },
+  "NIAT_Chalapathi_Guntur_SEO_Reports.md": {
+    "3": {
+      "faq_drop": [
+        "Q5"
+      ],
+      "text_replace": [
+        {
+          "from": "the kind of group conversation that takes\nthree hours.",
+          "to": "group conversation.",
+          "why": "'three hours' is not in the student's text"
+        }
+      ]
+    }
+  },
+  "NIAT_Chaitanya_Hyderabad_SEO_Reports.md": {
+    "4": {
+      "faq_drop": [
+        "Q5"
+      ]
+    }
   }
 }
