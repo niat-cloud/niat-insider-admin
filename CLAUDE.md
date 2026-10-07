@@ -27,6 +27,13 @@ node scripts/article-body.mjs push article-content/<slug>.html --apply
 node scripts/article-body.mjs restore article-content/backups/<run>/<slug>.json --apply
 ```
 `.md`/`.txt` files are converted (## headings, - lists, **bold**, links).
+An optional `article-content/<slug>.meta.json` (`title`, `meta_title`,
+`meta_description`, `meta_keywords` as a list) is saved in the same PATCH;
+the dry run shows old -> new per field, and `meta_title` over 60 or
+`meta_description` over 160 characters blocks the save. Every save also
+sends the current slug, so a new title never changes the URL. Lookup uses
+the public slug endpoint for published articles, so it still works after a
+title change.
 Checks block an `<h1>` (the page renders the only one), scripts/styles and
 pasted Google Docs/data: images; they warn on more than one FAQ heading and
 on bodies under 600 or over ~1,500 words. Every `--apply` backs up the live

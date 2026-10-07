@@ -16,12 +16,18 @@
  *   login --code 123456         Finish login; the session is kept in ~/.niat-admin/session.json
  *   pull <slug>...              Save each article's current body to article-content/<slug>.html
  *   push <file>... [--apply]    Check files and show what would change; with --apply, back up and save
+ *                               (also sends title/meta fields from <slug>.meta.json next to the file)
  *   restore <backup.json> [--apply]  Put a backed-up body back
  *
  * The slug comes from the file name (article-content/<slug>.html|.md|.txt).
  * .html is sent as is; .md/.txt are converted (## headings, - lists, **bold**,
  * *italic*, [links](url), blank line = new paragraph; "#" becomes h2 because
  * the page template already renders the only h1).
+ *
+ * Optional <slug>.meta.json beside the body file sets any of title, meta_title
+ * (max 60 chars), meta_description (max 160) and meta_keywords (list) in the
+ * same save. Backups hold the old body and these fields; restore puts back
+ * whatever the backup has.
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -221,8 +227,47 @@ function loadFile(file) {
   const raw = fs.readFileSync(file, "utf8");
   if (![".html", ".htm", ".md", ".txt"].includes(ext)) die(`${file}: use .html, .md or .txt`);
   const body = ext === ".html" || ext === ".htm" ? raw.trim() : markdownToHtml(raw);
-  return { slug, body };
+  const metaFile = path.join(path.dirname(file), `${slug}.meta.json`);
+  let meta = null;
+  if (fs.existsSync(metaFile)) {
+    try {
+      meta = JSON.parse(fs.readFileSync(metaFile, "utf8"));
+    } catch (e) {
+      die(`${metaFile}: not valid JSON (${e.message})`);
+    }
+  }
+  return { slug, body, meta };
 }
+
+/** Fields <slug>.meta.json may set, saved in the same PATCH as the body. */
+export const META_FIELDS = ["title", "meta_title", "meta_description", "meta_keywords"];
+const META_TITLE_MAX = 60;
+const META_DESCRIPTION_MAX = 160;
+
+/** Errors for a <slug>.meta.json object; fields left out are not changed. */
+export function checkMeta(meta) {
+  const errors = [];
+  if (meta == null) return errors;
+  if (typeof meta !== "object" || Array.isArray(meta)) return ["meta.json must be an object"];
+  for (const k of Object.keys(meta)) if (!META_FIELDS.includes(k)) errors.push(`meta.json: unknown field "${k}"`);
+  for (const k of ["title", "meta_title", "meta_description"]) {
+    if (k in meta && (typeof meta[k] !== "string" || !meta[k].trim())) errors.push(`${k} must be a non-empty string`);
+  }
+  if ("title" in meta && /<[^>]+>/.test(meta.title || "")) errors.push("title contains HTML");
+  if (typeof meta.meta_title === "string" && meta.meta_title.length > META_TITLE_MAX)
+    errors.push(`meta_title is ${meta.meta_title.length} characters, over ${META_TITLE_MAX}`);
+  if (typeof meta.meta_description === "string" && meta.meta_description.length > META_DESCRIPTION_MAX)
+    errors.push(`meta_description is ${meta.meta_description.length} characters, over ${META_DESCRIPTION_MAX}`);
+  if ("meta_keywords" in meta) {
+    const kw = meta.meta_keywords;
+    if (!Array.isArray(kw) || !kw.length || kw.some((w) => typeof w !== "string" || !w.trim()))
+      errors.push("meta_keywords must be a non-empty list of strings");
+  }
+  return errors;
+}
+
+const sameValue = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+const showValue = (v) => (v == null || v === "" ? "(empty)" : Array.isArray(v) ? (v.length ? v.join(" | ") : "(empty)") : String(v));
 
 /** Problems that would break the page or SEO. Errors block --apply; warnings don't. */
 export function checkBody(body) {
@@ -242,6 +287,13 @@ export function checkBody(body) {
 }
 
 async function findArticle(slug) {
+  // Published articles: the public endpoint looks up by slug directly, so this
+  // works even after a title change.
+  const pub = await fetch(`${apiBase()}/api/articles/articles/${encodeURIComponent(slug)}/`);
+  if (pub.ok) {
+    const p = await readBody(pub);
+    if (p?.id && p.slug === slug) return api("GET", `${ADMIN_ARTICLES}/${p.id}/`);
+  }
   // Admin search matches titles, not slugs, so after the slug itself try its
   // longest words (skipping a trailing hex id) and match the slug exactly.
   const words = slug
@@ -322,27 +374,44 @@ async function push(args) {
   const runDir = path.join(BACKUP_DIR, stamp());
   let blocked = 0;
   for (const file of files) {
-    const { slug, body } = loadFile(file);
+    const { slug, body, meta } = loadFile(file);
     const check = checkBody(body);
-    console.log(`\n${slug}  (${check.words} words in file)`);
-    check.errors.forEach((m) => console.log(`  ERROR   ${m}`));
+    const errors = [...check.errors, ...checkMeta(meta)];
+    console.log(`\n${slug}  (${check.words} words in file${meta ? ", with meta.json" : ""})`);
+    errors.forEach((m) => console.log(`  ERROR   ${m}`));
     check.warnings.forEach((m) => console.log(`  warning ${m}`));
-    if (check.errors.length) {
+    if (errors.length) {
       blocked += 1;
       continue;
     }
     try {
       const a = await findArticle(slug);
-      const same = (a.body || "").trim() === body.trim();
-      console.log(`  live    [${a.status}] ${wordCount(a.body)} -> ${check.words} words${same ? " (no change)" : ""}`);
-      if (!apply || same) continue;
+      const changes = { body: (a.body || "").trim() !== body.trim() };
+      console.log(`  live    [${a.status}] ${wordCount(a.body)} -> ${check.words} words${changes.body ? "" : " (body unchanged)"}`);
+      for (const k of META_FIELDS) {
+        if (!meta || !(k in meta)) continue;
+        changes[k] = !sameValue(a[k], meta[k]);
+        console.log(`  ${k.padEnd(17)}${changes[k] ? "" : "(unchanged) "}${showValue(a[k])}`);
+        if (changes[k]) console.log(`  ${"".padEnd(14)}-> ${showValue(meta[k])}`);
+      }
+      if (!apply || !Object.values(changes).some(Boolean)) continue;
       fs.mkdirSync(runDir, { recursive: true });
       const backup = path.join(runDir, `${slug}.json`);
-      fs.writeFileSync(backup, JSON.stringify({ id: a.id, slug, saved_at: new Date().toISOString(), body: a.body }, null, 2));
-      await api("PATCH", `${ADMIN_ARTICLES}/${a.id}/`, { body });
+      const saved = { id: a.id, slug: a.slug, saved_at: new Date().toISOString(), body: a.body };
+      for (const k of META_FIELDS) saved[k] = a[k];
+      fs.writeFileSync(backup, JSON.stringify(saved, null, 2));
+      // Send the slug with every save, as the admin editor does, so a new
+      // title can never make the backend derive a new slug.
+      const patch = { slug: a.slug, body };
+      for (const k of META_FIELDS) if (meta && k in meta) patch[k] = meta[k];
+      await api("PATCH", `${ADMIN_ARTICLES}/${a.id}/`, patch);
       const after = await api("GET", `${ADMIN_ARTICLES}/${a.id}/`);
-      const stored = (after.body || "").trim() === body.trim();
-      console.log(`  SAVED   backup: ${path.relative(ROOT, backup)}${stored ? "" : "  (the backend adjusted the HTML on save; check the page)"}`);
+      const off = Object.keys(patch).filter((k) =>
+        k === "body" ? (after.body || "").trim() !== body.trim() : !sameValue(after[k], patch[k]),
+      );
+      console.log(`  SAVED   backup: ${path.relative(ROOT, backup)}`);
+      console.log(off.length ? `  CHECK   read-back differs in: ${off.join(", ")}; check the page` : "  OK      read-back matches every field");
+      if (off.length) process.exitCode = 1;
     } catch (e) {
       console.error(`  FAILED  ${e.message}`);
       process.exitCode = 1;
@@ -362,8 +431,15 @@ async function restore(args) {
   const b = JSON.parse(fs.readFileSync(file, "utf8"));
   const current = await api("GET", `${ADMIN_ARTICLES}/${b.id}/`);
   console.log(`${b.slug}: ${wordCount(current.body)} -> ${wordCount(b.body)} words (backup from ${b.saved_at})`);
+  // Older backups hold only the body; restore whichever fields the backup has.
+  const patch = { slug: b.slug, body: b.body };
+  for (const k of META_FIELDS) {
+    if (!(k in b)) continue;
+    patch[k] = b[k];
+    if (!sameValue(current[k], b[k])) console.log(`  ${k}: ${showValue(current[k])}\n    -> ${showValue(b[k])}`);
+  }
   if (!apply) return console.log("Dry run: add --apply to restore.");
-  await api("PATCH", `${ADMIN_ARTICLES}/${b.id}/`, { body: b.body });
+  await api("PATCH", `${ADMIN_ARTICLES}/${b.id}/`, patch);
   console.log("Restored.");
 }
 
