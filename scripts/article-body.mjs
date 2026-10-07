@@ -332,7 +332,7 @@ const sameValue = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? nu
 const showValue = (v) => (v == null || v === "" ? "(empty)" : Array.isArray(v) ? (v.length ? v.join(" | ") : "(empty)") : String(v));
 
 /** Problems that would break the page or SEO. Errors block --apply; warnings don't. */
-export function checkBody(body) {
+export function checkBody(body, { allowUnderFloor = false } = {}) {
   const errors = [];
   const warnings = [];
   if (!textOf(body)) errors.push("body is empty");
@@ -344,7 +344,8 @@ export function checkBody(body) {
   if (faqHeadings > 1) warnings.push(`${faqHeadings} FAQ headings; the page should show one FAQ`);
   const words = wordCount(body);
   // 450: every article under it failed the Oct 2026 text-to-HTML audit.
-  if (words < 450) errors.push(`${words} words, under the 450-word floor; send it back to the author`);
+  if (words < 450 && allowUnderFloor) warnings.push(`${words} words, under the 450-word floor (overridden with --allow-under-floor)`);
+  else if (words < 450) errors.push(`${words} words, under the 450-word floor; send it back to the author`);
   else if (words < 600) warnings.push(`${words} words, under the 600-word target`);
   if (words > 1500) warnings.push(`${words} words, over the ~1,500-word soft maximum`);
   return { errors, warnings, words };
@@ -433,13 +434,16 @@ async function pull(slugs) {
 
 async function push(args) {
   const apply = args.includes("--apply");
-  const files = args.filter((a) => a !== "--apply");
+  // For a page whose live body is already shorter: the floor would keep the
+  // worse version up. Record why in the commit.
+  const allowUnderFloor = args.includes("--allow-under-floor");
+  const files = args.filter((a) => a !== "--apply" && a !== "--allow-under-floor");
   if (!files.length) die("give at least one file");
   const runDir = path.join(BACKUP_DIR, stamp());
   let blocked = 0;
   for (const file of files) {
     const { slug, body, meta } = loadFile(file);
-    const check = checkBody(body);
+    const check = checkBody(body, { allowUnderFloor });
     const errors = [...check.errors, ...checkMeta(meta)];
     console.log(`\n${slug}  (${check.words} words in file${meta ? ", with meta.json" : ""})`);
     errors.forEach((m) => console.log(`  ERROR   ${m}`));

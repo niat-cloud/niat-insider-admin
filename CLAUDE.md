@@ -24,6 +24,7 @@ Workflow, one file per article named by slug in `article-content/`:
 node scripts/article-body.mjs pull <slug>...           # current body -> article-content/<slug>.html
 node scripts/article-body.mjs push article-content/*.html     # dry run: checks + word counts
 node scripts/article-body.mjs push article-content/<slug>.html --apply
+node scripts/article-body.mjs push article-content/<slug>.html --apply --allow-under-floor  # only when the live body is shorter still
 node scripts/article-body.mjs restore article-content/backups/<run>/<slug>.json --apply
 ```
 `.md`/`.txt` files are converted (## headings, - lists, **bold**, links).
