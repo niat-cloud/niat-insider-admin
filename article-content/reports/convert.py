@@ -35,6 +35,25 @@ def section(text, n):
     return m.group(1) if m else None
 
 
+def overrides_for(report_name, n):
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides.json")
+    data = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {}
+    return data.get(report_name, {}).get(str(n), {})
+
+
+def apply_faq_overrides(sec, ov, problems):
+    """Drop or replace whole FAQ entries ("**Qn. ...**" plus the lines up to the next blank line)."""
+    for qn in ov.get("faq_drop", []):
+        sec, k = re.subn(rf"^\*\*{qn}\.[^\n]*\*\*\n(?:[^\n]+\n?)*\n?", "", sec, flags=re.M)
+        if k != 1:
+            problems.append(f"faq_drop {qn}: matched {k} entries")
+    for qn, rep in ov.get("faq_replace", {}).items():
+        sec, k = re.subn(rf"^\*\*{qn}\.[^\n]*\*\*\n(?:[^\n]+\n?)*", lambda m: f"**{rep['q']}**\n{rep['a']}\n", sec, flags=re.M)
+        if k != 1:
+            problems.append(f"faq_replace {qn}: matched {k} entries")
+    return sec
+
+
 def labelled(sec, label):
     """Text on the line after "**<label> ...:**" (e.g. Meta title (54 chars):)."""
     m = re.search(rf"^\*\*{label}[^*\n]*:\*\*\s*\n([^\n]+)", sec, re.M)
@@ -129,7 +148,7 @@ def body_html(sec, problems):
     return result
 
 
-def convert(text, n):
+def convert(text, n, report_name=None):
     parts = re.split(r"^# ARTICLE (\d+)\s*$", text, flags=re.M)
     arts = {parts[i]: parts[i + 1] for i in range(1, len(parts), 2)}
     a = arts.get(str(n))
@@ -163,6 +182,11 @@ def convert(text, n):
             problems.append(f"missing {k}")
     if not s5:
         return None, problems + ["no section 5 body"]
+    ov = overrides_for(report_name, n) if report_name else {}
+    for k, v in ov.get("meta", {}).items():
+        notes.append(f"{k} from overrides.json")
+        meta[k] = v
+    s5 = apply_faq_overrides(s5, ov, problems)
     body = body_html(s5, problems)
     return {"n": n, "url": url, "slug": slug, "meta": meta, "body": body, "notes": notes}, problems
 
@@ -170,7 +194,7 @@ def convert(text, n):
 if __name__ == "__main__":
     report = open(sys.argv[1], encoding="utf-8").read()
     for n in sys.argv[2:]:
-        art, problems = convert(report, n)
+        art, problems = convert(report, n, os.path.basename(sys.argv[1]))
         if art is None:
             print(f"ARTICLE {n}: SKIP ({'; '.join(problems)})")
             continue

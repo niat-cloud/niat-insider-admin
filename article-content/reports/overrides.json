@@ -1,0 +1,9 @@
+{
+  "_note": "Changes to the reports approved by the report author in session. faq_drop: question numbers whose whole answer is the absence of information. faq_replace: author-supplied question and answer. meta: author-supplied replacements for fields over the 60/160 limits.",
+  "NIAT_VGU_Jaipur_SEO_Reports.md": {
+    "3": {"faq_replace": {"Q5": {"q": "Q5. Is the gym free or do you pay?", "a": "The VGU Gym charges a membership fee, which this student describes as highly reasonable and affordable for almost every student. Actinium Gym, just outside campus, is the more premium option."}}},
+    "5": {"faq_drop": ["Q5"]},
+    "16": {"meta": {"meta_description": "The NSGC president on what the NIAT Student General Council actually does at NIAT Jaipur: raising student issues, running clubs and keeping everyone informed."}},
+    "17": {"meta": {"meta_description": "Panache is VGU Jaipur's seven-day festival every March: classes suspended, 140+ competitions, each department given an Indian state, one trophy at stake."}}
+  }
+}
