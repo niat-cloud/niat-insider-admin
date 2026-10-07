@@ -43,6 +43,13 @@ def overrides_for(report_name, n):
 
 def apply_faq_overrides(sec, ov, problems):
     """Drop or replace whole FAQ entries ("**Qn. ...**" plus the lines up to the next blank line)."""
+    for rep in ov.get("text_replace", []):
+        # An exact phrase in the report changed by the report author.
+        k = sec.count(rep["from"])
+        if k != 1:
+            problems.append(f"text_replace {rep['from'][:40]!r}: matched {k} times")
+            continue
+        sec = sec.replace(rep["from"], rep["to"])
     for qn in ov.get("faq_drop", []):
         sec, k = re.subn(rf"^\*\*{qn}\.[^\n]*\*\*\n(?:[^\n]+\n?)*\n?", "", sec, flags=re.M)
         if k != 1:
@@ -189,6 +196,9 @@ def convert(text, n, report_name=None):
     if not s5:
         return None, problems + ["no section 5 body"]
     ov = overrides_for(report_name, n) if report_name else {}
+    for k in ov:
+        if k not in ("faq_drop", "faq_replace", "text_replace", "meta"):
+            problems.append(f"overrides.json: unknown key {k!r}")
     for k, v in ov.get("meta", {}).items():
         notes.append(f"{k} from overrides.json")
         meta[k] = v

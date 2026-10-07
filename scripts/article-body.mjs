@@ -199,6 +199,35 @@ export function lostSpecifics(liveHtml, newHtml) {
   return [...lost];
 }
 
+/**
+ * The reverse check: specifics the new body has and the live body does not,
+ * so an invented detail shows up. "strict" is numbers and times of day, which
+ * are almost never legitimate additions; "names" is capitalised words, noisier
+ * (expansions like "Smart India Hackathon" for "SIH" land here too).
+ */
+export function addedSpecifics(liveHtml, newHtml) {
+  const norm = (t) => t.toLowerCase().replace(/(\d)\s*([ap])\.?m\.?/g, "$1$2m").replace(/(\d)\s+(km|kg|%)/g, "$1$2");
+  const liveText = norm(textOf(liveHtml));
+  // FAQ labels ("Q3.") are numbering, and title-case headings are restructuring.
+  const newHtmlNoLabels = String(newHtml).replace(/(<h[2-4][^>]*>)\s*Q\d+\.\s*/gi, "$1");
+  const newText = textOf(newHtmlNoLabels);
+  const proseText = textOf(newHtmlNoLabels.replace(/<h[2-4][^>]*>[\s\S]*?<\/h[2-4]>/gi, " "));
+  const liveWords = new Set(liveText.match(/[\p{L}\p{N}]+/gu) || []);
+  const strict = new Set();
+  for (const m of norm(newText).matchAll(/\d[\d,.]*(?:\s*(?:am|pm|%|lakh|crore|km|kg))?|\b(?:midnight|noon|dawn|dusk|o'clock)\b/g)) {
+    const t = m[0].replace(/[.,]+$/, "");
+    if (!liveText.includes(t)) strict.add(t);
+  }
+  const names = new Set();
+  for (const sentence of proseText.split(/(?<=[.!?:])\s+/)) {
+    (sentence.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) || []).forEach((w, i) => {
+      const t = w.replace(/['’-]+$/, "");
+      if (i > 0 && /^\p{Lu}/u.test(t) && t.length > 1 && !liveWords.has(t.toLowerCase())) names.add(t);
+    });
+  }
+  return { strict: [...strict], names: [...names] };
+}
+
 const wordCount = (html) => (textOf(html) ? textOf(html).split(" ").length : 0);
 
 function escapeHtml(s) {
@@ -425,6 +454,9 @@ async function push(args) {
       console.log(`  live    [${a.status}] ${wordCount(a.body)} -> ${check.words} words${changes.body ? "" : " (body unchanged)"}`);
       const lost = changes.body ? lostSpecifics(a.body, body) : [];
       if (lost.length) console.log(`  lost    specifics only in the live body (names, numbers, list items; review): ${lost.join(", ")}`);
+      const added = changes.body ? addedSpecifics(a.body, body) : { strict: [], names: [] };
+      if (added.strict.length) console.log(`  ADDED   numbers/times not in the live body (check each): ${added.strict.join(", ")}`);
+      if (added.names.length) console.log(`  added   names not in the live body (expansions or new; review): ${added.names.join(", ")}`);
       for (const k of META_FIELDS) {
         if (!meta || !(k in meta)) continue;
         changes[k] = !sameValue(a[k], meta[k]);
