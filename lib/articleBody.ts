@@ -13,19 +13,22 @@ export const PUBLIC_SITE_URL = (
 export const MIN_RECOMMENDED_WORDS = 450;
 
 /**
- * Designed layouts the visual editor cannot represent: the generated `ni-*`
- * article templates (highlight boxes, styled quotes, arrow lists), tables and
- * embeds. These open in HTML mode so their styling isn't lost by accident;
- * the admin can still switch them to the normal editor.
+ * Markup the visual editor cannot represent: the generated `ni-*` article
+ * templates, tables and embeds. Loading such a body into TipTap and saving it
+ * would silently strip that markup, so the editor opens these articles in
+ * HTML mode instead.
  *
- * Stray classes, ids, inline styles and spans left by copy-paste (for
- * example `class="isSelectedEnd"`) are not layout and do not count: the
- * normal editor simply drops them.
+ * Stray classes, inline styles, spans and wrapper divs are not on this list.
+ * Text copied from chat tools, Google Docs or Word is full of them (e.g.
+ * `<p class="isSelectedEnd">`), they mean nothing on the public site, and
+ * the visual editor simply drops them, so such articles stay editable.
  */
-const LAYOUT_TEMPLATE = /\sclass\s*=\s*["'][^"']*\bni-[a-z]|<(table|iframe|video|style)\b/i;
+const UNSUPPORTED_TAGS = /<(table|iframe|video|audio|embed|object|figure|form|style)\b/i;
+const TEMPLATE_CLASS = /\sclass\s*=\s*["'][^"']*\bni-[\w-]+/i;
 
-export function hasLayoutTemplate(html: string): boolean {
-  return LAYOUT_TEMPLATE.test(html || "");
+export function hasUnsupportedMarkup(html: string): boolean {
+  const body = html || "";
+  return UNSUPPORTED_TAGS.test(body) || TEMPLATE_CLASS.test(body);
 }
 
 /** Same rule the public site applies before rendering: the title is the page's only H1. */
@@ -132,32 +135,41 @@ export function cleanBodyHtml(html: string): { html: string; removed: number } {
 }
 
 /**
- * Prepares stored HTML for the visual editor:
- * - removes `article-image-card` blocks (the public site hides them; their
- *   images are already in the article's image list),
- * - strips classes, ids and inline styles left by copy-paste,
- * - maps H1 to H2 (as the public site does) and H5/H6 to H4, so no heading
- *   turns into a plain paragraph.
- * Text, links, lists, bold and other formatting are kept.
+ * Prepares stored HTML for the visual editor, which only knows H2–H4:
+ * H1 becomes H2 (as on the public site) and H5/H6 become H4, so no heading
+ * is turned into a plain paragraph on load.
+ *
+ * It also undoes two leftovers of copying from chat tools that the editor
+ * would otherwise make worse: whole passages wrapped in inline `<code>`
+ * (shown as one long monospace run) and blank lines inside a single `<p>`
+ * (collapsed into one paragraph). Nothing is saved until the admin edits.
  */
 export function prepareBodyForEditor(html: string): string {
-  const root = parse(demoteH1(html || ""));
-  if (!root) {
-    return demoteH1(html || "")
-      .replace(/<h[56](\s[^>]*)?>/gi, "<h4$1>")
-      .replace(/<\/h[56]>/gi, "</h4>");
-  }
-  root.querySelectorAll(".article-image-card").forEach((el) => el.remove());
-  root.querySelectorAll("[class], [style], [id]").forEach((el) => {
-    el.removeAttribute("class");
-    el.removeAttribute("style");
-    el.removeAttribute("id");
+  const headings = demoteH1(html || "")
+    .replace(/<h[56](\s[^>]*)?>/gi, "<h4$1>")
+    .replace(/<\/h[56]>/gi, "</h4>");
+  const root = parse(headings);
+  if (!root) return headings;
+
+  root.querySelectorAll("code").forEach((code) => {
+    if (code.closest("pre")) return;
+    const text = code.textContent ?? "";
+    if (text.includes("\n") || text.length > 120) {
+      code.replaceWith(...Array.from(code.childNodes));
+    }
   });
-  root.querySelectorAll("h5, h6").forEach((el) => {
-    const h4 = document.createElement("h4");
-    h4.append(...Array.from(el.childNodes));
-    el.replaceWith(h4);
+
+  root.querySelectorAll("p").forEach((p) => {
+    const parts = p.innerHTML.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
+    if (parts.length < 2) return;
+    const paragraphs = parts.map((part) => {
+      const next = document.createElement("p");
+      next.innerHTML = part;
+      return next;
+    });
+    p.replaceWith(...paragraphs);
   });
+
   return root.innerHTML;
 }
 

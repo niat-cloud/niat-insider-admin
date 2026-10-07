@@ -115,7 +115,6 @@ export function ArticlePreviewClient({ articleId }: ArticlePreviewClientProps) {
               rejectionReason: article.rejection_reason,
               coverImage: article.cover_image,
               images: article.images,
-              faq: article.faq_schema,
               updatedAt: article.updated_at,
               upvoteCount: article.upvote_count,
               viewCount: article.view_count,

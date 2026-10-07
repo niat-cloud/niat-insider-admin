@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, ChevronRight as Crumb, Clock, Eye, ThumbsUp 
 import { cn } from "@/lib/utils";
 import { demoteH1, stripScripts } from "@/lib/articleBody";
 import { getCategoryConfig } from "@/lib/articleCategories";
-import { parseArticleFaq } from "@/lib/articleFaq";
 import type { ArticleStatus } from "@/types/article";
 import styles from "./ArticlePreview.module.css";
 
@@ -21,7 +20,6 @@ export type ArticlePreviewData = {
   rejectionReason?: string;
   coverImage?: string;
   images?: string[];
-  faq?: unknown;
   updatedAt?: string;
   upvoteCount?: number;
   viewCount?: number;
@@ -42,8 +40,9 @@ function daysSince(iso?: string): number {
 
 /**
  * Renders an article the way niatinsider.com's article page does (breadcrumbs,
- * category and campus chips, title, image carousel, body, FAQ block and
- * footer), from any data, including unsaved form values.
+ * category and campus chips, title, image carousel, body and footer), from
+ * any data, including unsaved form values. Like the live site, it does not
+ * show the AI-generated `faq_schema`: articles appear exactly as written.
  */
 export function ArticlePreview({ article, device = "desktop", className }: ArticlePreviewProps) {
   const [index, setIndex] = useState(0);
@@ -59,7 +58,6 @@ export function ArticlePreview({ article, device = "desktop", className }: Artic
   const current = index < images.length ? index : 0;
 
   const body = useMemo(() => demoteH1(stripScripts(article.body || "")), [article.body]);
-  const faq = useMemo(() => parseArticleFaq(article.faq), [article.faq]);
   const category = getCategoryConfig(article.category);
   const campus = article.campusName || "Global";
   const isGlobal = campus === "Global";
@@ -198,21 +196,6 @@ export function ArticlePreview({ article, device = "desktop", className }: Artic
           </div>
         )}
 
-        {faq.length > 0 && (
-          <section className={cn(styles.faq, "mb-8")} aria-label="Frequently asked questions">
-            <h2 className={cn(styles.display, "mb-4 font-bold text-[#1e293b]", mobile ? "text-xl" : "text-2xl")} style={{ fontWeight: 700 }}>
-              Frequently asked questions
-            </h2>
-            <div>
-              {faq.map((item, i) => (
-                <div key={i}>
-                  <h3>{item.question}</h3>
-                  <p>{item.answer}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         <div className="mb-2 space-y-3 border-t border-[rgba(30,41,59,0.1)] pt-6 text-sm text-black">
           <div>Written by {article.authorUsername || "author"}</div>

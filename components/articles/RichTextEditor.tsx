@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import {
   cleanBodyHtml,
   cleanPastedHtml,
-  hasLayoutTemplate,
+  hasUnsupportedMarkup,
   prepareBodyForEditor,
 } from "@/lib/articleBody";
 import styles from "./RichTextEditor.module.css";
@@ -115,10 +115,10 @@ export function RichTextEditor({
   minHeight = "320px",
   onCleaned,
 }: RichTextEditorProps) {
-  // Designed layouts (ni-* templates, tables, embeds) open as HTML so their
-  // styling isn't lost by accident. Everything else uses the normal editor.
-  const lockedToHtml = hasLayoutTemplate(value);
-  const [confirmConvert, setConfirmConvert] = useState(false);
+  // Bodies with layout markup the visual editor would strip open as HTML,
+  // unless the admin chooses to switch anyway.
+  const [forcedVisual, setForcedVisual] = useState(false);
+  const lockedToHtml = hasUnsupportedMarkup(value) && !forcedVisual;
   const [htmlChosen, setHtmlChosen] = useState(false);
   const htmlMode = lockedToHtml || htmlChosen;
   const [linkOpen, setLinkOpen] = useState(false);
@@ -161,20 +161,23 @@ export function RichTextEditor({
     }
   }, [value, editor, htmlMode]);
 
-  // Turns a designed layout into normal formatted text the admin can edit.
-  const convertToNormal = useCallback(() => {
-    if (!editor) return;
-    editor.commands.setContent(prepareBodyForEditor(value), false);
-    setHtmlChosen(false);
-    setConfirmConvert(false);
-    onChange(editor.getHTML());
-  }, [editor, value, onChange]);
-
   const switchToVisual = useCallback(() => {
-    if (!editor || lockedToHtml) return;
+    if (!editor) return;
+    if (lockedToHtml) {
+      const ok = window.confirm(
+        "This article uses a custom layout (template blocks, tables or embeds). The visual editor keeps the text but removes that layout. Switch anyway?"
+      );
+      if (!ok) return;
+      setForcedVisual(true);
+      editor.commands.setContent(prepareBodyForEditor(value), false);
+      setHtmlChosen(false);
+      // Save what the visual editor kept, so the body matches what is shown.
+      onChange(editor.getHTML());
+      return;
+    }
     editor.commands.setContent(prepareBodyForEditor(value), false);
     setHtmlChosen(false);
-  }, [editor, lockedToHtml, value]);
+  }, [editor, lockedToHtml, value, onChange]);
 
   const openLink = useCallback(() => {
     if (!editor) return;
@@ -316,8 +319,13 @@ export function RichTextEditor({
             type="button"
             aria-pressed={htmlMode}
             onClick={() => (htmlMode ? switchToVisual() : setHtmlChosen(true))}
-            disabled={htmlMode && lockedToHtml}
-            title={lockedToHtml ? "Use \"Switch to normal editor\" below to edit this article as normal text" : "Edit the raw HTML"}
+            title={
+              lockedToHtml
+                ? "Switch to the visual editor (removes the custom layout)"
+                : htmlMode
+                  ? "Back to the visual editor"
+                  : "Edit the raw HTML"
+            }
             className={cn(
               "inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-xs hover:bg-zinc-700/70 hover:text-white disabled:cursor-not-allowed",
               htmlMode ? "bg-zinc-700 text-white" : "text-zinc-300"
@@ -372,32 +380,9 @@ export function RichTextEditor({
       {htmlMode ? (
         <div>
           {lockedToHtml && (
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-amber-900/50 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">
-              {confirmConvert ? (
-                <>
-                  <p className="min-w-0 flex-1">
-                    All the text, headings, lists and links stay. The designed boxes, colours and quote styles are removed. Check the preview, and leave without saving if you change your mind.
-                  </p>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={convertToNormal} className="h-8 rounded-md bg-[#991b1b] px-3 text-xs font-semibold text-white hover:bg-[#7f1d1d]">
-                      Yes, switch
-                    </button>
-                    <button type="button" onClick={() => setConfirmConvert(false)} className="h-8 rounded-md px-3 text-xs text-amber-200 hover:bg-amber-900/40 hover:text-white">
-                      Cancel
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="min-w-0 flex-1">
-                    This article uses a designed layout (highlight boxes, styled quotes or tables), so it is shown as HTML to keep that design.
-                  </p>
-                  <button type="button" onClick={() => setConfirmConvert(true)} className="h-8 shrink-0 rounded-md bg-amber-500 px-3 text-xs font-semibold text-zinc-950 hover:bg-amber-400">
-                    Switch to normal editor
-                  </button>
-                </>
-              )}
-            </div>
+            <p className="border-b border-amber-900/50 bg-amber-950/30 px-4 py-2 text-xs text-amber-200">
+              This article uses a custom layout (template blocks, tables or embeds) that the visual editor would remove, so it opens in HTML mode. Check your changes in the preview, or click HTML to switch to the visual editor anyway.
+            </p>
           )}
           <textarea
             aria-label="Article body HTML"

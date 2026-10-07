@@ -1,0 +1,180 @@
+{
+  "_note": "Changes to the reports approved by the report author in session. faq_drop: question numbers whose whole answer is the absence of information. faq_replace: author-supplied question and answer. meta: author-supplied replacements for fields over the 60/160 limits.",
+  "NIAT_VGU_Jaipur_SEO_Reports.md": {
+    "3": {
+      "faq_replace": {
+        "Q5": {
+          "q": "Q5. Is the gym free or do you pay?",
+          "a": "The VGU Gym charges a membership fee, which this student describes as highly reasonable and affordable for almost every student. Actinium Gym, just outside campus, is the more premium option."
+        }
+      }
+    },
+    "5": {
+      "faq_drop": [
+        "Q5"
+      ]
+    },
+    "16": {
+      "meta": {
+        "meta_description": "The NSGC president on what the NIAT Student General Council actually does at NIAT Jaipur: raising student issues, running clubs and keeping everyone informed."
+      },
+      "faq_drop": [
+        "Q6"
+      ]
+    },
+    "17": {
+      "meta": {
+        "meta_description": "Panache is VGU Jaipur's seven-day festival every March: classes suspended, 140+ competitions, each department given an Indian state, one trophy at stake."
+      }
+    },
+    "8": {
+      "faq_drop": [
+        "Q6"
+      ]
+    },
+    "12": {
+      "faq_drop": [
+        "Q7"
+      ],
+      "text_replace": [
+        {
+          "from": "That sounds minor until you compare it with the alternative. Article 1 on this site describes the walk from the gate to the 4th floor of the NIAT block as a small hike; students in flats are travelling around 2 km each way. Five minutes saves time every single day, and it is the difference between making a 9 a.m. class comfortably and not.",
+          "to": "Five minutes saves time every single day.",
+          "why": "report-voice reference to Article 1, facts from other articles, and an invented 9 a.m. class (approved)"
+        }
+      ]
+    },
+    "13": {
+      "faq_drop": [
+        "Q5"
+      ],
+      "text_replace": [
+        {
+          "from": " It reduces stress and makes four hours feel lighter than four hours under fluorescent tubes.",
+          "to": " It reduces stress.",
+          "why": "'four hours' and 'fluorescent tubes' are not in the student's text"
+        }
+      ]
+    },
+    "14": {
+      "faq_drop": [
+        "Q5"
+      ],
+      "text_replace": [
+        {
+          "from": "all in the same place at 6 a.m. for the same reason",
+          "to": "all in the same place early in the morning for the same reason",
+          "why": "the student wrote 'early morning', no time (approved)"
+        }
+      ]
+    },
+    "18": {
+      "faq_drop": [
+        "Q7"
+      ],
+      "text_replace": [
+        {
+          "from": "The esports arenas are worth noting — they are still unusual on an Indian campus.",
+          "to": "The esports arenas are worth noting.",
+          "why": "'unusual on an Indian campus' is not in the student's text (approved)"
+        },
+        {
+          "from": "trying a sport for the first time at nineteen",
+          "to": "trying a sport for the first time",
+          "why": "the age is not in the student's text"
+        }
+      ]
+    },
+    "21": {
+      "text_replace": [
+        {
+          "from": "defending design choices I had made at midnight",
+          "to": "defending design choices",
+          "why": "\"at midnight\" is not in the student's text"
+        }
+      ]
+    },
+    "19": {
+      "text_replace": [
+        {
+          "from": " In Jaipur that is the difference between a three-hour event and a three-hour endurance test.",
+          "to": "",
+          "why": "'three-hour event' is not in the student's text"
+        }
+      ]
+    }
+  },
+  "NIAT_NRI_Vijayawada_SEO_Reports.md": {
+    "4": {
+      "faq_drop": [
+        "Q4"
+      ]
+    },
+    "5": {
+      "faq_drop": [
+        "Q4",
+        "Q5"
+      ]
+    },
+    "8": {
+      "faq_drop": [
+        "Q5"
+      ]
+    },
+    "24": {
+      "faq_drop": [
+        "Q6"
+      ]
+    },
+    "6": {
+      "text_replace": [
+        {
+          "from": "At most colleges, career preparation is something that happens in your final year. You study for three years and then start thinking about work.",
+          "to": "At most colleges, career preparation starts later.",
+          "why": "the student wrote 'career preparation starts later'; 'final year' and 'three years' are not in her text"
+        }
+      ]
+    },
+    "10": {
+      "text_replace": [
+        {
+          "from": "That is a strange thing to carry at nineteen.",
+          "to": "That is a strange thing to carry.",
+          "why": "the age is not in the student's text"
+        }
+      ]
+    },
+    "13": {
+      "text_replace": [
+        {
+          "from": " — and the gap between those two sentences is roughly one human lifetime.",
+          "to": ".",
+          "why": "'roughly one human lifetime' is not in the student's text"
+        }
+      ]
+    },
+    "16": {
+      "text_replace": [
+        {
+          "from": "while you still have four years and a low-risk environment to practise in",
+          "to": "while you still have a low-risk environment to practise in",
+          "why": "'four years' is not in the student's text"
+        }
+      ]
+    },
+    "25": {
+      "text_replace": [
+        {
+          "from": "Everyone feels motivated at the start of a semester. Nobody feels motivated in week seven.",
+          "to": "Everyone feels motivated sometimes, like at the start of a new semester. But motivation fades.",
+          "why": "the student's own opening; 'week seven' is not in her text"
+        },
+        {
+          "from": "on a particular Tuesday",
+          "to": "on a particular day",
+          "why": "'Tuesday' is not in the student's text"
+        }
+      ]
+    }
+  }
+}
