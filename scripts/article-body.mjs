@@ -214,7 +214,7 @@ export function addedSpecifics(liveHtml, newHtml) {
   const proseText = textOf(newHtmlNoLabels.replace(/<h[2-4][^>]*>[\s\S]*?<\/h[2-4]>/gi, " "));
   const liveWords = new Set(liveText.match(/[\p{L}\p{N}]+/gu) || []);
   const strict = new Set();
-  for (const m of norm(newText).matchAll(/\d[\d,.]*(?:\s*(?:am|pm|%|lakh|crore|km|kg))?|\b(?:midnight|noon|dawn|dusk|o'clock)\b/g)) {
+  for (const m of norm(newText).matchAll(/\d[\d,.]*(?:\s*(?:am|pm|%|lakh|crore|km|kg))?|\b(?:midnight|noon|dawn|dusk|o'clock|(?:twen|thir|for|fif|six|seven|eigh|nine)ty|(?:thir|four|fif|six|seven|eigh|nine)teen|eleven|twelve|two|three|four|five|six|seven|eight|nine|ten|hundred|thousand|lakh|crore)\b/g)) {
     const t = m[0].replace(/[.,]+$/, "");
     if (!liveText.includes(t)) strict.add(t);
   }
