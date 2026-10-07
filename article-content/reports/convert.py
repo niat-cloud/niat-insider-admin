@@ -54,6 +54,12 @@ def apply_faq_overrides(sec, ov, problems):
     return sec
 
 
+def edited_body(slug):
+    """An edited body in reports/edited/<slug>.md (same Markdown as section 5) replaces the report's."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "edited", f"{slug}.md")
+    return open(path, encoding="utf-8").read() if os.path.exists(path) else None
+
+
 def labelled(sec, label):
     """Text on the line after "**<label> ...:**" (e.g. Meta title (54 chars):)."""
     m = re.search(rf"^\*\*{label}[^*\n]*:\*\*\s*\n([^\n]+)", sec, re.M)
@@ -187,6 +193,10 @@ def convert(text, n, report_name=None):
         notes.append(f"{k} from overrides.json")
         meta[k] = v
     s5 = apply_faq_overrides(s5, ov, problems)
+    edited = edited_body(slug)
+    if edited is not None:
+        notes.append("body from reports/edited/ (approved edit, not the report text)")
+        s5 = edited
     body = body_html(s5, problems)
     return {"n": n, "url": url, "slug": slug, "meta": meta, "body": body, "notes": notes}, problems
 

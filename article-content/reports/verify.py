@@ -6,7 +6,7 @@ section 5 says, word for word, after the removals convert.py makes.
 """
 import html, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from convert import convert, section, CALLOUT, overrides_for, apply_faq_overrides
+from convert import convert, section, CALLOUT, overrides_for, apply_faq_overrides, edited_body
 
 def words(s):
     return re.findall(r"[^\s]+", s)
@@ -40,7 +40,7 @@ for n in sys.argv[2:]:
     name = os.path.basename(sys.argv[1])
     art, _ = convert(report, n, name)
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", f"{art['slug']}.html")
-    a, e = actual(open(path, encoding="utf-8").read()), expected(apply_faq_overrides(section(arts[n], 5), overrides_for(name, n), []))
+    a, e = actual(open(path, encoding="utf-8").read()), expected(edited_body(art["slug"]) or apply_faq_overrides(section(arts[n], 5), overrides_for(name, n), []))
     if a == e:
         print(f"ARTICLE {n}: body matches the report word for word ({len(a)} words)")
     else:
