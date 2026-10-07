@@ -22,6 +22,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { useArticle, useUpdateArticle } from "@/hooks/useArticles";
+import { apiErrorMessage } from "@/lib/apiErrorMessage";
 import { useGoBack } from "@/hooks/useGoBack";
 import { useToast } from "@/hooks/useToast";
 import { useArticleDraft } from "@/hooks/useArticleDraft";
@@ -246,15 +247,11 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
         setLastSavedAt(new Date().toISOString());
         toast({ title: "Article saved" });
       } catch (err: unknown) {
-        const ax = err as { response?: { data?: Record<string, unknown> } };
-        const data = ax.response?.data;
-        let msg = "Failed to save article";
-        if (data && typeof data.detail === "string") msg = data.detail;
-        else if (data && typeof data === "object") {
-          const first = Object.entries(data)[0];
-          if (first) msg = `${first[0]}: ${Array.isArray(first[1]) ? first[1].join(" ") : String(first[1])}`;
-        }
-        toast({ title: "Couldn't save", description: msg, variant: "destructive" });
+        toast({
+          title: "Couldn't save",
+          description: apiErrorMessage(err, "Failed to save article"),
+          variant: "destructive",
+        });
       }
     },
     [articleId, updateMutation, form, draft, toast]
