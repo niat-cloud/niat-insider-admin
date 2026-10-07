@@ -17,7 +17,10 @@
     "16": {
       "meta": {
         "meta_description": "The NSGC president on what the NIAT Student General Council actually does at NIAT Jaipur: raising student issues, running clubs and keeping everyone informed."
-      }
+      },
+      "faq_drop": [
+        "Q6"
+      ]
     },
     "17": {
       "meta": {
@@ -42,6 +45,11 @@
     "14": {
       "faq_drop": [
         "Q5"
+      ]
+    },
+    "18": {
+      "faq_drop": [
+        "Q7"
       ]
     }
   }
