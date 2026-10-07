@@ -34,9 +34,12 @@ the dry run shows old -> new per field, and `meta_title` over 60 or
 sends the current slug, so a new title never changes the URL. Lookup uses
 the public slug endpoint for published articles, so it still works after a
 title change.
-Checks block an `<h1>` (the page renders the only one), scripts/styles and
-pasted Google Docs/data: images; they warn on more than one FAQ heading and
-on bodies under 600 or over ~1,500 words. Every `--apply` backs up the live
+Checks block an `<h1>` (the page renders the only one), scripts/styles,
+pasted Google Docs/data: images and bodies under 450 words (every article
+under 450 failed the Oct 2026 text-to-HTML audit); they warn on more than
+one FAQ heading and on bodies under 600 or over ~1,500 words. The dry run
+also lists names and numbers the live body has and the new one drops, so a
+rewrite that loses specifics shows up even when it is not shorter. Every `--apply` backs up the live
 body first; commit `article-content/` (bodies and backups) so changes can
 be undone after the session ends. Rules for content: keep the student's
 text as written, add only what the article supports, no fees/placement/

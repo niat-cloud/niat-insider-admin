@@ -52,9 +52,7 @@ The DJ night is one of the most awaited parts of the week. Students dance and si
 
 #### H2: What Students Take Away From It
 
-Organising and taking part in Panache teaches leadership, teamwork, time management and event coordination. Performing in front of a large audience builds confidence.
-
-Because it brings together students from every department and background, it also strengthens friendships and builds a sense of unity across the university.
+Organising and taking part in Panache teaches leadership, teamwork, time management and event coordination, and performing in front of a large audience builds confidence. Because it brings together students from every department, it also strengthens friendships across the university.
 
 **Conclusion**
 
@@ -85,5 +83,5 @@ A themed presentation in which each department is assigned a different Indian st
 **Q7. Are there celebrity performances at Panache?**
 Yes, the festival includes celebrity guest appearances, and each evening ends with a DJ set.
 
-**Q8. Can students from other colleges take part in Panache?**
-Yes. Alongside the inter-department competitions, Panache includes inter-college competitions open to participants from other colleges.
+**Q8. Does Panache include other colleges?**
+Yes — the festival runs inter-college competitions as well as inter-department ones.

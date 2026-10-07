@@ -166,6 +166,39 @@ function textOf(html) {
     .trim();
 }
 
+/**
+ * Names and numbers in the live body that the new body no longer has, so a
+ * rewrite that trades specifics for prose shows up even when it is not shorter.
+ */
+export function lostSpecifics(liveHtml, newHtml) {
+  const strip = (w) => w.replace(/[.'’-]+$/, "");
+  const have = new Set((textOf(newHtml).toLowerCase().match(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu) || []).map(strip));
+  const lost = new Set();
+  for (const sentence of textOf(liveHtml).split(/(?<=[.!?])\s+/)) {
+    const words = sentence.match(/[\p{L}\p{N}][\p{L}\p{N}'’.-]*/gu) || [];
+    words.forEach((w, i) => {
+      const t = strip(w);
+      const specific = /\d/.test(t) || (i > 0 && /^\p{Lu}/u.test(t) && t.length > 1);
+      if (specific && !have.has(t.toLowerCase()) && !have.has(w.toLowerCase())) lost.add(t);
+    });
+  }
+  // Items of a written list ("singing, dancing, acting, and fashion shows")
+  // and hyphenated terms ("inter-college") are specifics too, even in lower case.
+  const liveText = textOf(liveHtml);
+  for (const m of liveText.matchAll(/(?:[\p{L}\p{N}’'-]+(?: [\p{L}\p{N}’'-]+){0,2}, ){2,}(?:and |or )?[\p{L}\p{N}’'-]+(?: [\p{L}\p{N}’'-]+){0,2}/gu)) {
+    const items = m[0].split(/, (?:and |or )?/);
+    items.forEach((item, i) => {
+      const w = item.trim().split(" ");
+      // The first item and long items carry words of the sentence around the list.
+      const name = (i === 0 || w.length > 2 ? w.slice(-1) : w).join(" ");
+      const last = strip(w[w.length - 1]).toLowerCase();
+      if (last.length > 2 && !have.has(last)) lost.add(strip(name));
+    });
+  }
+  for (const w of liveText.match(/\p{L}+-\p{L}+/gu) || []) if (!have.has(w.toLowerCase())) lost.add(w);
+  return [...lost];
+}
+
 const wordCount = (html) => (textOf(html) ? textOf(html).split(" ").length : 0);
 
 function escapeHtml(s) {
@@ -281,7 +314,9 @@ export function checkBody(body) {
   const faqHeadings = (body.match(/<h[2-4][^>]*>[^<]*(faq|frequently asked)[^<]*<\/h[2-4]>/gi) || []).length;
   if (faqHeadings > 1) warnings.push(`${faqHeadings} FAQ headings; the page should show one FAQ`);
   const words = wordCount(body);
-  if (words < 600) warnings.push(`${words} words, under the 600-word minimum`);
+  // 450: every article under it failed the Oct 2026 text-to-HTML audit.
+  if (words < 450) errors.push(`${words} words, under the 450-word floor; send it back to the author`);
+  else if (words < 600) warnings.push(`${words} words, under the 600-word target`);
   if (words > 1500) warnings.push(`${words} words, over the ~1,500-word soft maximum`);
   return { errors, warnings, words };
 }
@@ -388,6 +423,8 @@ async function push(args) {
       const a = await findArticle(slug);
       const changes = { body: (a.body || "").trim() !== body.trim() };
       console.log(`  live    [${a.status}] ${wordCount(a.body)} -> ${check.words} words${changes.body ? "" : " (body unchanged)"}`);
+      const lost = changes.body ? lostSpecifics(a.body, body) : [];
+      if (lost.length) console.log(`  lost    specifics only in the live body (names, numbers, list items; review): ${lost.join(", ")}`);
       for (const k of META_FIELDS) {
         if (!meta || !(k in meta)) continue;
         changes[k] = !sameValue(a[k], meta[k]);
