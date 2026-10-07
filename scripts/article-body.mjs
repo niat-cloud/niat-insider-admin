@@ -242,11 +242,22 @@ export function checkBody(body) {
 }
 
 async function findArticle(slug) {
-  const data = await api("GET", `${ADMIN_ARTICLES}/?search=${encodeURIComponent(slug)}&page_size=50`);
-  const list = Array.isArray(data) ? data : data?.results ?? [];
-  const hit = list.find((a) => a.slug === slug);
-  if (!hit) throw new Error(`no article with slug "${slug}" (searched ${list.length} results)`);
-  return api("GET", `${ADMIN_ARTICLES}/${hit.id}/`);
+  // Admin search matches titles, not slugs, so after the slug itself try its
+  // longest words (skipping a trailing hex id) and match the slug exactly.
+  const words = slug
+    .split("-")
+    .filter((w, i, all) => !(i === all.length - 1 && /^[0-9a-f]{8}$/.test(w)))
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 3);
+  let searched = 0;
+  for (const term of [slug, ...words]) {
+    const data = await api("GET", `${ADMIN_ARTICLES}/?search=${encodeURIComponent(term)}&page_size=100`);
+    const list = Array.isArray(data) ? data : data?.results ?? [];
+    searched += list.length;
+    const hit = list.find((a) => a.slug === slug);
+    if (hit) return api("GET", `${ADMIN_ARTICLES}/${hit.id}/`);
+  }
+  throw new Error(`no article with slug "${slug}" (searched ${searched} results)`);
 }
 
 function stamp() {
