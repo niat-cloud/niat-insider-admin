@@ -127,10 +127,11 @@
 }
 
 .page .body :where(th, td):not(:where(:global(.ni-article) *)) {
-  padding: 0.5em 0.75em;
+  padding: 0.45em 0.65em;
   border: 1px solid #e5e7eb;
   text-align: left;
   vertical-align: top;
+  line-height: 1.45;
 }
 
 .page .body :where(thead th):not(:where(:global(.ni-article) *)) {
