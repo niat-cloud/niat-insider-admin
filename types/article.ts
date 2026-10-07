@@ -70,7 +70,7 @@ export type Article = {
   ai_feedback: AIFeedback | null
   ai_reviewed_at?: string | null
   reviewed_at?: string | null
-  /** FAQs rendered under the article on the public site (written by the backend's SEO command). Shape is not guaranteed; see lib/articleFaq.ts. */
+  /** AI-generated FAQs from the backend's SEO command. Not shown on the public site or in the preview: articles appear exactly as written. */
   faq_schema?: unknown
 }
 

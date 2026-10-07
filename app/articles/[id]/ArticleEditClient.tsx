@@ -660,7 +660,6 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
                       rejectionReason: deferredValues.rejection_reason,
                       coverImage: deferredValues.cover_image,
                       images: deferredValues.images,
-                      faq: article.faq_schema,
                       updatedAt: article.updated_at,
                       upvoteCount: article.upvote_count,
                       viewCount: article.view_count,
