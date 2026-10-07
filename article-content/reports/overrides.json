@@ -40,7 +40,7 @@
         {
           "from": "That sounds minor until you compare it with the alternative. Article 1 on this site describes the walk from the gate to the 4th floor of the NIAT block as a small hike; students in flats are travelling around 2 km each way. Five minutes saves time every single day, and it is the difference between making a 9 a.m. class comfortably and not.",
           "to": "Five minutes saves time every single day.",
-          "why": "report-voice reference to Article 1, facts from other articles, and an invented 9 a.m. class (PROPOSED, not yet approved)"
+          "why": "report-voice reference to Article 1, facts from other articles, and an invented 9 a.m. class (approved)"
         }
       ]
     },
@@ -57,7 +57,7 @@
         {
           "from": "all in the same place at 6 a.m. for the same reason",
           "to": "all in the same place early in the morning for the same reason",
-          "why": "the student wrote 'early morning', no time (PROPOSED, not yet approved)"
+          "why": "the student wrote 'early morning', no time (approved)"
         }
       ]
     },
@@ -69,7 +69,7 @@
         {
           "from": "The esports arenas are worth noting — they are still unusual on an Indian campus.",
           "to": "The esports arenas are worth noting.",
-          "why": "'unusual on an Indian campus' is not in the student's text (PROPOSED, not yet approved)"
+          "why": "'unusual on an Indian campus' is not in the student's text (approved)"
         }
       ]
     },
