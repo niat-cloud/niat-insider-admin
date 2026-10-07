@@ -117,6 +117,27 @@
   font-style: italic;
 }
 
+.page .body :where(table):not(:where(:global(.ni-article) *)) {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 1.2em 0;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+
+.page .body :where(th, td):not(:where(:global(.ni-article) *)) {
+  padding: 0.5em 0.75em;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: top;
+}
+
+.page .body :where(thead th):not(:where(:global(.ni-article) *)) {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
 .page .body :where(hr):not(:where(:global(.ni-article) *)) {
   margin: 1.6em 0;
   border: 0;
