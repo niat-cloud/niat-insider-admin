@@ -143,6 +143,38 @@
           "why": "the age is not in the student's text"
         }
       ]
+    },
+    "13": {
+      "text_replace": [
+        {
+          "from": " — and the gap between those two sentences is roughly one human lifetime.",
+          "to": ".",
+          "why": "'roughly one human lifetime' is not in the student's text"
+        }
+      ]
+    },
+    "16": {
+      "text_replace": [
+        {
+          "from": "while you still have four years and a low-risk environment to practise in",
+          "to": "while you still have a low-risk environment to practise in",
+          "why": "'four years' is not in the student's text"
+        }
+      ]
+    },
+    "25": {
+      "text_replace": [
+        {
+          "from": "Everyone feels motivated at the start of a semester. Nobody feels motivated in week seven.",
+          "to": "Everyone feels motivated sometimes, like at the start of a new semester. But motivation fades.",
+          "why": "the student's own opening; 'week seven' is not in her text"
+        },
+        {
+          "from": "on a particular Tuesday",
+          "to": "on a particular day",
+          "why": "'Tuesday' is not in the student's text"
+        }
+      ]
     }
   }
 }
