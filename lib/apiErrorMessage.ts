@@ -30,7 +30,9 @@ function firstMessage(value: unknown, path: string[], depth = 0): string | null 
     const obj = value as Record<string, unknown>;
     // Field errors first: a generic "Invalid input." next to them says less.
     for (const [key, child] of Object.entries(obj)) {
-      if (["code", "status", "status_code", "detail", "message"].includes(key)) continue;
+      if (["detail", "message"].includes(key)) continue;
+      // Metadata only when scalar; a field named "code" (e.g. the OTP) holds messages.
+      if (["code", "status", "status_code"].includes(key) && (typeof child === "string" || typeof child === "number")) continue;
       const found = firstMessage(child, [...path, key], depth + 1);
       if (found) return found;
     }
