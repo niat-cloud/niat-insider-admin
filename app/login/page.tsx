@@ -34,19 +34,33 @@ export default function LoginPage() {
     }
   }, [step]);
 
-  function validatePhone(value: string): boolean {
-    if (!value.startsWith("+")) return false;
-    const digits = value.replace(/\D/g, "");
-    return digits.length >= 10;
+  /**
+   * Turns what people type into the +91XXXXXXXXXX form the backend expects:
+   * "9398377986", "09398377986", "+91 93983 77986" and "+9398377986" (the
+   * 91 left out) all become "+919398377986". A number that starts with "+"
+   * and another country code is kept as typed. Returns null when it can't be
+   * a phone number.
+   */
+  function normalizePhone(value: string): string | null {
+    const raw = value.trim();
+    const digits = raw.replace(/\D/g, "");
+    const indianMobile = /^[6-9]\d{9}$/;
+    if (indianMobile.test(digits)) return `+91${digits}`;
+    if (digits.length === 11 && digits.startsWith("0") && indianMobile.test(digits.slice(1))) return `+91${digits.slice(1)}`;
+    if (digits.length === 12 && digits.startsWith("91") && indianMobile.test(digits.slice(2))) return `+${digits}`;
+    if (raw.startsWith("+") && digits.length >= 11 && digits.length <= 15 && !digits.startsWith("91")) return `+${digits}`;
+    return null;
   }
 
   async function handleSendOtp() {
     setError("");
-    const trimmed = phone.trim();
-    if (!validatePhone(trimmed)) {
-      setError("Phone must start with + and have at least 10 digits.");
+    const normalized = normalizePhone(phone);
+    if (!normalized) {
+      setError("Enter your 10-digit mobile number, e.g. 9876543210 or +91 98765 43210.");
       return;
     }
+    if (normalized !== phone.trim()) setPhone(normalized);
+    const trimmed = normalized;
     setLoading(true);
     try {
       await api.post("/api/verification/otp/request/", {
@@ -56,11 +70,17 @@ export default function LoginPage() {
       setStep("otp");
       setOtp("");
     } catch (err: unknown) {
-      const ax = err as { response?: { data?: { detail?: string; message?: string } } };
+      const ax = err as { response?: { status?: number; data?: { detail?: string; message?: string; error?: string } } };
+      const status = ax.response?.status;
       const msg =
         ax.response?.data?.detail ??
         ax.response?.data?.message ??
-        "Failed to send OTP";
+        ax.response?.data?.error ??
+        (status && status >= 500
+          ? "The server couldn't send the OTP. Check the number, wait a minute and try again."
+          : !ax.response
+            ? "Couldn't reach the server. Check your connection and try again."
+            : "Failed to send OTP");
       setError(typeof msg === "string" ? msg : JSON.stringify(msg));
     } finally {
       setLoading(false);
@@ -146,7 +166,7 @@ export default function LoginPage() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+91XXXXXXXXXX"
+                  placeholder="98765 43210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendOtp()}
