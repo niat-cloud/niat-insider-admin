@@ -6,6 +6,10 @@ import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
+import Table from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableHeader from "@tiptap/extension-table-header";
+import TableCell from "@tiptap/extension-table-cell";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Bold,
@@ -21,6 +25,7 @@ import {
   Redo2,
   Sparkles,
   Strikethrough,
+  Table as TableIcon,
   Underline as UnderlineIcon,
   Undo2,
 } from "lucide-react";
@@ -133,9 +138,19 @@ export function RichTextEditor({
       Link.configure({
         openOnClick: false,
         autolink: true,
+        // Only real web addresses. Without this, words like "B.Tech" (.tech is
+        // a real domain ending) were turned into links to http://B.Tech.
+        shouldAutoLink: (text) => /^(https?:\/\/|www\.)/i.test(text),
+        // Same rule for links found in pasted text, which TipTap checks here.
+        isAllowedUri: (url, ctx) =>
+          ctx.defaultValidate(url) && /^(https?:\/\/|www\.|mailto:|tel:|\/|#)/i.test(url),
         HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
       }),
       Image.configure({ inline: false }),
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableHeader,
+      TableCell,
       Placeholder.configure({ placeholder }),
     ],
     content: htmlMode ? "" : prepareBodyForEditor(value),
@@ -293,6 +308,14 @@ export function RichTextEditor({
           <Link2Off className="h-4 w-4" />
         </ToolButton>
 
+        <ToolButton
+          label="Insert table"
+          disabled={!visual || editor.isActive("table")}
+          onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+        >
+          <TableIcon className="h-4 w-4" />
+        </ToolButton>
+
         <Divider />
         <ToolButton label="Undo" shortcut={`${MOD}+Z`} disabled={!visual || !editor.can().undo()} onClick={() => editor.chain().focus().undo().run()}>
           <Undo2 className="h-4 w-4" />
@@ -336,6 +359,68 @@ export function RichTextEditor({
           </button>
         </div>
       </div>
+
+      {visual && editor.isActive("table") && (
+        <div
+          role="toolbar"
+          aria-label="Table"
+          className="flex flex-wrap items-center gap-1 border-b border-zinc-800 bg-zinc-900 px-2 py-1.5 text-xs"
+        >
+          <span className="mr-1 text-zinc-500">Table:</span>
+          {([
+            ["Row above", () => editor.chain().focus().addRowBefore().run()],
+            ["Row below", () => editor.chain().focus().addRowAfter().run()],
+            ["Column left", () => editor.chain().focus().addColumnBefore().run()],
+            ["Column right", () => editor.chain().focus().addColumnAfter().run()],
+          ] as const).map(([label, run]) => (
+            <button
+              key={label}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={run}
+              className="h-7 rounded-md border border-zinc-700 px-2 text-zinc-200 hover:bg-zinc-700/70 hover:text-white"
+            >
+              + {label}
+            </button>
+          ))}
+          <span className="mx-1 h-5 w-px bg-zinc-700" aria-hidden />
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+            className="h-7 rounded-md border border-zinc-700 px-2 text-zinc-200 hover:bg-zinc-700/70 hover:text-white"
+            title="Make the first row a header row (bold, shaded), or back to a normal row"
+          >
+            Header row on/off
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => editor.chain().focus().mergeOrSplit().run()}
+            disabled={!editor.can().mergeOrSplit()}
+            className="h-7 rounded-md border border-zinc-700 px-2 text-zinc-200 hover:bg-zinc-700/70 hover:text-white disabled:opacity-35"
+            title="Select several cells to merge them, or click a merged cell to split it"
+          >
+            Merge / split cells
+          </button>
+          <span className="mx-1 h-5 w-px bg-zinc-700" aria-hidden />
+          {([
+            ["Delete row", () => editor.chain().focus().deleteRow().run()],
+            ["Delete column", () => editor.chain().focus().deleteColumn().run()],
+            ["Delete table", () => editor.chain().focus().deleteTable().run()],
+          ] as const).map(([label, run]) => (
+            <button
+              key={label}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={run}
+              className="h-7 rounded-md px-2 text-red-300 hover:bg-red-950/60 hover:text-red-200"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {linkOpen && visual && (
         <form
@@ -399,7 +484,9 @@ export function RichTextEditor({
           />
         </div>
       ) : (
-        <>
+        // Own wrapper: BubbleMenu moves its element out of React's tree, so
+        // toolbars shown above (table, link) must not be its direct siblings.
+        <div>
           <BubbleMenu
             editor={editor}
             tippyOptions={{ duration: 120 }}
@@ -426,7 +513,7 @@ export function RichTextEditor({
             </ToolButton>
           </BubbleMenu>
           <EditorContent editor={editor} />
-        </>
+        </div>
       )}
     </div>
   );

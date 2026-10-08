@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, ChevronRight as Crumb, Clock, Eye, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { demoteH1, stripScripts } from "@/lib/articleBody";
+import { demoteH1, prepareArticleTables, stripScripts, unlinkBareDomainWords } from "@/lib/articleBody";
 import { getCategoryConfig } from "@/lib/articleCategories";
 import type { ArticleStatus } from "@/types/article";
 import styles from "./ArticlePreview.module.css";
@@ -57,7 +57,10 @@ export function ArticlePreview({ article, device = "desktop", className }: Artic
   // Images can be removed while previewing; fall back to the first one.
   const current = index < images.length ? index : 0;
 
-  const body = useMemo(() => demoteH1(stripScripts(article.body || "")), [article.body]);
+  const body = useMemo(
+    () => prepareArticleTables(unlinkBareDomainWords(demoteH1(stripScripts(article.body || "")))),
+    [article.body]
+  );
   const category = getCategoryConfig(article.category);
   const campus = article.campusName || "Global";
   const isGlobal = campus === "Global";
