@@ -1,0 +1,43 @@
+{
+  "id": "e5d0a708-3a95-4772-ae80-a77fdf840661",
+  "slug": "the-friend-who-became-family-fbb35502",
+  "title": "The Friend Who Became Family",
+  "body": "<p class=\"isSelectedEnd\">Some friendships start with a simple introduction.</p><p class=\"isSelectedEnd\">A classroom seat.<br>A project team.<br>A casual conversation.</p><p class=\"isSelectedEnd\">Nothing seems special at first.</p><p class=\"isSelectedEnd\">Then years pass.</p><p class=\"isSelectedEnd\">You celebrate victories together. You face challenges together. You support each other through difficult times.</p><p class=\"isSelectedEnd\">Slowly, the friendship becomes something deeper.</p><p class=\"isSelectedEnd\">You stop introducing them as \"a friend.\"</p><p class=\"isSelectedEnd\">They become family in everything except blood.</p><p class=\"isSelectedEnd\">These relationships are rare, and they remind us that family is not always defined by birth. Sometimes it is defined by loyalty, trust, and time.</p><p>\"The strongest friendships are built so well that they start feeling like family.\"</p>",
+  "excerpt": "The Friend Who Became Family",
+  "status": "published",
+  "rejection_reason": "",
+  "featured": false,
+  "created_at": "2026-06-03T17:51:34.096446Z",
+  "updated_at": "2026-10-06T13:04:08.242254Z",
+  "category": "survival-food",
+  "category_fk": "ff0296ad-4943-43d6-903e-88de34d97ab1",
+  "subcategory": "",
+  "subcategory_other": "",
+  "meta_title": "When College Friends Become Family | NIAT Insider",
+  "meta_description": "A classroom seat, a project team, a casual chat. A NIAT student on how college friends who stay through good and bad times slowly become family.",
+  "meta_keywords": [],
+  "topic": "",
+  "author": {
+    "id": "870ebc4f-2ee5-4acf-83d3-2fc334d1b65d",
+    "username": "SAI PRAMESH",
+    "email": "saipramesh40@gmail.com"
+  },
+  "reviewed_by": {
+    "id": "e6916b6c-9400-41a7-8662-fd5eea6024e7",
+    "username": "Mahesh",
+    "email": null
+  },
+  "author_username": "SAI PRAMESH",
+  "campus_name": "Nadimpalli Satyanarayana Raju Institute of Technology",
+  "campus_id": "0806e66f-f9a2-4012-8477-55ca95e81e14",
+  "upvote_count": 0,
+  "view_count": 5,
+  "ai_generated": false,
+  "cover_image": "",
+  "images": [],
+  "ai_confident_score": null,
+  "ai_feedback": null,
+  "ai_reviewed_at": null,
+  "reviewed_at": "2026-10-06T13:04:08.241929Z",
+  "saved_at": "2026-10-08T14:17:00.760Z"
+}
