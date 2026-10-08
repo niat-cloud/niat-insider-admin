@@ -117,26 +117,65 @@
   font-style: italic;
 }
 
-.page .body :where(table):not(:where(:global(.ni-article) *)) {
-  display: block;
+/* Tables: mirrors the site's table rules (globals.css), including inside
+   ni-* templates. prepareArticleTables() adds the .article-table wrapper. */
+.page .body :where(:global(.article-table)) {
   max-width: 100%;
   overflow-x: auto;
   margin: 1.2em 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.page .body :where(table) {
+  width: 100%;
   border-collapse: collapse;
   font-size: 0.95em;
 }
 
-.page .body :where(th, td):not(:where(:global(.ni-article) *)) {
-  padding: 0.45em 0.65em;
+.page .body :where(table):not(:where(:global(.article-table) > table)) {
+  display: block;
+  overflow-x: auto;
+  margin: 1.2em 0;
+}
+
+.page .body :where(th, td) {
+  min-width: 7rem;
+  padding: 0.55em 0.75em;
   border: 1px solid #e5e7eb;
   text-align: left;
   vertical-align: top;
   line-height: 1.45;
 }
 
-.page .body :where(thead th):not(:where(:global(.ni-article) *)) {
+.page .body :where(:global(.article-table)) :where(tr:first-child > *) {
+  border-top: 0;
+}
+
+.page .body :where(:global(.article-table)) :where(tr:last-child > *) {
+  border-bottom: 0;
+}
+
+.page .body :where(:global(.article-table)) :where(tr > :first-child) {
+  border-left: 0;
+}
+
+.page .body :where(:global(.article-table)) :where(tr > :last-child) {
+  border-right: 0;
+}
+
+.page .body :where(th) {
   background: #f9fafb;
+  color: #111827;
   font-weight: 600;
+}
+
+.page .body :where(th, td) > :where(p) {
+  margin: 0;
+}
+
+.page .body :where(th, td) > :where(p + p) {
+  margin-top: 0.5em;
 }
 
 .page .body :where(hr):not(:where(:global(.ni-article) *)) {
