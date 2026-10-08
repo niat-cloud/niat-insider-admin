@@ -74,6 +74,8 @@ def labelled(sec, label):
 
 
 def body_html(sec, problems):
+    # Editor notes can wrap across lines in hard-wrapped reports.
+    sec = re.sub(r"\s*\*\(Editor:.*?\)\*", "", sec, flags=re.S)
     lines = sec.split("\n")
     out, para, lst, quote, table = [], [], None, [], []
 
@@ -139,6 +141,8 @@ def body_html(sec, problems):
             if para or lst or quote:
                 flush()
             table.append(line)
+        elif lst and raw[:1] in (" ", "\t") and not re.match(r"^([-*]|\d+[.)]) ", line):
+            lst[1][-1] += " " + line  # wrapped continuation of the list item above
         elif re.match(r"^[-*] ", line) or re.match(r"^\d+[.)] ", line):
             tag = "ul" if re.match(r"^[-*] ", line) else "ol"
             if para or quote or table or (lst and lst[0] != tag):
@@ -149,10 +153,8 @@ def body_html(sec, problems):
         else:
             if lst or quote or table:
                 flush()
-            # An FAQ answer starts on the line right after its question.
+            # An FAQ answer runs from the line after its question to the next blank line.
             para.append(line)
-            if out and out[-1].startswith("<h3>Q"):
-                flush()
     flush()
     result = "\n".join(out)
     for leftover in ["**", "](", "Editor:", "🚨", "⚠", "✅", "H2:", "H3:"]:
@@ -184,7 +186,7 @@ def convert(text, n, report_name=None):
         if meta[k] and declared and int(declared.group(1)) != len(meta[k]):
             notes.append(f"{k}: report label says {declared.group(1)} chars, text is {len(meta[k])}")
     prim = re.search(r"^\*\*Primary:\*\*\s*(.+)$", s6 or "", re.M)
-    sec = re.search(r"^\*\*Secondary:\*\*\s*(.+)$", s6 or "", re.M)
+    sec = re.search(r"^\*\*(?:Semantic/)?[Ss]econdary:\*\*\s*(.+)$", s6 or "", re.M)
     if prim and sec:
         kws = [prim.group(1)] + re.split(r"\s+·\s+", sec.group(1))
         meta["meta_keywords"] = [k.strip().lower() for k in kws if k.strip()]

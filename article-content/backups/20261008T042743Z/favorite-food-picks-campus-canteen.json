@@ -1,0 +1,52 @@
+{
+  "id": "636fb400-9774-4a5d-a80d-594451a31465",
+  "slug": "favorite-food-picks-campus-canteen",
+  "title": "My Favorite Food Picks at NIAT",
+  "body": "<h1><p>One of the things I enjoy about NIAT is the variety of food available on campus. Students can find snacks, fast food, bakery items, milkshakes, and full meals, from quick bites between classes to meals like biryani.</p></h1><h1 style=\"border-color: rgba(31, 41, 55, 0.1);\"><span style=\"border-color: rgba(31, 41, 55, 0.1);\">A Variety of Food Options</span></h1><div><span style=\"border-color: rgba(31, 41, 55, 0.1);\"><br/></span></div><div><span style=\"background-color: rgba(0, 0, 0, 0); font-size: 1.05rem;\">One of the things I enjoy about NIAT is the variety of food available on campus. Students can find snacks, fast food, bakery items, milkshakes, and full meals. From quick snacks between classes to meals like biryani, there are plenty of options to choose from.</span></div><p><br/></p><p><br/></p><blockquote>\"Student life isn't just about classes and assignments—it's also about the small moments shared over snacks and conversations.\"</blockquote><p><br/></p><h3 style=\"border-color: rgba(31, 41, 55, 0.1);\">My Go-To Drink</h3><div><br/></div><h3 style=\"border-color: rgba(31, 41, 55, 0.1);\"><div style=\"border-color: rgba(31, 41, 55, 0.1);\"><span style=\"background-color: rgba(0, 0, 0, 0); font-size: 1.05rem; color: rgb(31, 41, 55);\">Among all the drinks I have tried, the Oreo Milkshake is my favorite. It is refreshing, delicious, and perfect for a quick break during a busy day. Whenever I need something cool and tasty, this is usually my first choice.</span></div></h3><p><br/></p><h1 style=\"border-color: rgba(31, 41, 55, 0.1);\"><span style='border-color: rgba(31, 41, 55, 0.1); font-family: \"Playfair Display\", serif; background-color: rgba(0, 0, 0, 0); letter-spacing: -0.02em; font-size: 21px;'>My Favorite Fast Food Item</span></h1><div><span style='border-color: rgba(31, 41, 55, 0.1); font-family: \"Playfair Display\", serif; background-color: rgba(0, 0, 0, 0); letter-spacing: -0.02em; font-size: 21px;'><br/></span></div><div><span style=\"background-color: rgba(0, 0, 0, 0); font-size: 1.05rem;\">When it comes to fast food, Manchuria is my top pick. The flavor and taste make it one of the snacks I enjoy the most, especially while spending time with friends, Manchuria is always a great option.</span></div><p><br/></p><h2>Bakery Favorites</h2><div><br/></div><h3><span style=\"color: rgb(31, 41, 55); font-size: 16.8px; font-weight: 400; letter-spacing: normal;\">The bakery section offers several tasty options. I personally enjoyed the Cooling Cake, while many students also recommend the Lava Cake as a popular choice.</span></h3><h1><br/></h1><h1 style=\"border-color: rgba(31, 41, 55, 0.1);\">Final Thoughts</h1><div><br/></div><h3>Good food makes campus life even more enjoyable. If you're new to NIAT, I would definitely recommend trying the Oreo Milkshake, Manchuria, and the bakery treats. They have become some of my favorite parts of the campus food experience.</h3><h1><p class=\"isSelectedEnd\"><br/></p><p class=\"isSelectedEnd\"><br/></p><p></p></h1><p><br/></p><p><br/></p><p><br/></p><p><br/></p><p><br/></p>",
+  "excerpt": "Snacks, milkshakes, biryani, and one bakery item everyone keeps recommending. Here's what actually made this student's food list.",
+  "status": "published",
+  "rejection_reason": "",
+  "featured": false,
+  "created_at": "2026-06-22T17:57:58.209885Z",
+  "updated_at": "2026-07-09T13:16:07.735413Z",
+  "category": "survival-food",
+  "category_fk": "ff0296ad-4943-43d6-903e-88de34d97ab1",
+  "subcategory": "",
+  "subcategory_other": "",
+  "meta_title": "NIAT Food Guide: Best Canteen Picks Every Student Loves",
+  "meta_description": "Oreo milkshake, Manchuria, or lava cake? A student shares the go-to canteen favorites worth trying on your first week. See the full list here.",
+  "meta_keywords": [
+    "niat canteen food",
+    "niat hostel food review",
+    "best food items niat campus",
+    "niat food options",
+    "niat bakery items",
+    "niat student life food",
+    "niat mess food review",
+    "campus food picks niat"
+  ],
+  "topic": "",
+  "author": {
+    "id": "7c7a8d5b-9ba8-4059-b5ff-5cdbb2cc5748",
+    "username": "Rohini",
+    "email": "rohinigajula02@gmail.com"
+  },
+  "reviewed_by": {
+    "id": "e6916b6c-9400-41a7-8662-fd5eea6024e7",
+    "username": "Mahesh",
+    "email": null
+  },
+  "author_username": "Rohini",
+  "campus_name": "NRI University",
+  "campus_id": "70785a88-7b72-4bb3-b4a6-2998b119ac6d",
+  "upvote_count": 1,
+  "view_count": 29,
+  "ai_generated": false,
+  "cover_image": "",
+  "images": [],
+  "ai_confident_score": null,
+  "ai_feedback": null,
+  "ai_reviewed_at": null,
+  "reviewed_at": "2026-07-09T13:16:07.735006Z",
+  "saved_at": "2026-10-08T04:27:43.044Z"
+}
