@@ -44,6 +44,9 @@ rewrite that loses specifics shows up even when it is not shorter, and the
 reverse: numbers and times of day (ADDED) and capitalised names (added) the
 new body has and the live one does not, so an invented detail shows up. Every `--apply` backs up the live
 body first; commit `article-content/` (bodies and backups) so changes can
-be undone after the session ends. Rules for content: keep the student's
+be undone after the session ends. Backups of the Oct 2026 batch were pruned
+once the updates were accepted (they remain in git history);
+`article-content/backups/removed/<slug>.json` keeps the full record of
+every unpublished article, with `removed_reason`. Rules for content: keep the student's
 text as written, add only what the article supports, no fees/placement/
 exam claims the article doesn't make.

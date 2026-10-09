@@ -1,0 +1,53 @@
+{
+  "id": "5dc19208-9fe9-46ca-9558-38d0c414b04e",
+  "slug": "vr-stall-48-hour-challenge-niat-student-experience",
+  "title": "48 hours Profit Challenge",
+  "body": "<p data-end=\"456\" data-start=\"0\">The 48-hour profit challenge at NIAT Sanjay Ghodawat University transformed our entire campus into a buzzing marketplace. Energy and competition filled every corner as students set up stalls, tested business ideas, and fought for customer attention.</p><p data-end=\"456\" data-start=\"0\"><br/></p>\n<p data-end=\"797\" data-start=\"458\">In the beginning, many students passing by did not really understand what Virtual Reality actually was. Some were curious, while others looked confused about how it worked. That was the moment we understood that creating an innovative idea is only half the work — the real challenge is convincing people to try it and understand its value.</p><p data-end=\"797\" data-start=\"458\"><br/></p>\n<p data-end=\"1161\" data-start=\"799\">We started talking to students personally, explaining how the VR headset works and how they could experience games and virtual environments in a completely different way. Once one student tried it, they quickly called their friends to experience it too. Slowly, our stall became one of the busiest spots on campus, with students excitedly waiting for their turn.</p>\n<p data-end=\"1646\" data-is-last-node=\"\" data-is-only-node=\"\" data-start=\"1163\">The experience taught us much more than just setting up a stall. Selling a common snack or drink would have been easier because everyone already understands it. But promoting a new technology required confidence, communication, patience, and creativity. We had to explain, demonstrate, and convince people continuously. This challenge helped us understand real entrepreneurship — not just earning money, but creating curiosity, solving problems, and making people believe in an idea.</p>",
+  "excerpt": "While everyone else set up food stalls, we decided to bring VR gaming to campus. Students were confused at first, but once one person tried it, queues started forming.",
+  "status": "published",
+  "rejection_reason": "",
+  "featured": false,
+  "created_at": "2026-05-12T11:05:49.321213Z",
+  "updated_at": "2026-05-14T04:16:08.452111Z",
+  "category": "club-directory",
+  "category_fk": "5902304a-60e1-43c5-879b-7a8b7155b77f",
+  "subcategory": "entrepreneur-club",
+  "subcategory_other": "",
+  "meta_title": "VR Stall 48-Hour Challenge at NIAT Kolhapur Experience",
+  "meta_description": "A NIAT student built a VR gaming stall during the 48-hour profit challenge while others sold food. Here's how they turned confusion into queues at their booth.",
+  "meta_keywords": [
+    "niat kolhapur",
+    "48 hour profit challenge niat",
+    "niat student clubs activities",
+    "vr gaming stall college",
+    "niat entrepreneurship challenge",
+    "sanjay ghodawat university events",
+    "niat campus competitions",
+    "college business challenge experience"
+  ],
+  "topic": "",
+  "author": {
+    "id": "d64788ef-4718-46ae-b98e-bf0d0fbfba71",
+    "username": "chillmahesh",
+    "email": "maheshyadav20072025@gmail.com"
+  },
+  "reviewed_by": {
+    "id": "27e80db7-e7f9-4d09-a817-30d5187f6c92",
+    "username": "sai",
+    "email": "s5410072562@gmail.com"
+  },
+  "author_username": "chillmahesh",
+  "campus_name": "Sanjay Ghodawat University",
+  "campus_id": "2fbf1a81-e71c-4bd8-a9ba-2c44207ca066",
+  "upvote_count": 1,
+  "view_count": 15,
+  "ai_generated": false,
+  "cover_image": "",
+  "images": [],
+  "ai_confident_score": null,
+  "ai_feedback": null,
+  "ai_reviewed_at": null,
+  "reviewed_at": "2026-05-14T04:16:08.451682Z",
+  "saved_at": "2026-10-09T04:17:02.003Z",
+  "removed_reason": "Merged: another article on this campus covers the same topic, so this one has been removed and now points to it."
+}

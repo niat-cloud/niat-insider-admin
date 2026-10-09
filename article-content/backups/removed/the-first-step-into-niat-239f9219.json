@@ -1,0 +1,94 @@
+{
+  "id": "1d0883ba-e64d-45f0-b3a9-62ba49a64dd6",
+  "slug": "the-first-step-into-niat-239f9219",
+  "title": "The First Step into NIAT",
+  "body": "<p data-start=\"145\" data-end=\"363\">The onboarding kit is more than just a welcome package—it is the beginning of a new journey. Designed to introduce students to NIAT, the kit provides all the essential resources needed to get started with confidence.</p>\n<p data-start=\"365\" data-end=\"617\">It typically includes guides, basic learning materials, and important information about programs, activities, and opportunities. Everything inside the kit is carefully curated to help students understand the path ahead and feel prepared from day one.</p>\n<p data-start=\"619\" data-end=\"794\">What makes the onboarding kit special is its role in creating excitement and belonging. It makes every student feel welcomed, valued, and ready to explore new possibilities.</p>\n<p data-start=\"796\" data-end=\"904\">With the onboarding kit in hand, students take their first step towards learning, innovation, and success.</p>",
+  "excerpt": "The First Step into NIAT",
+  "status": "published",
+  "rejection_reason": "",
+  "featured": false,
+  "created_at": "2026-04-30T05:31:20.130480Z",
+  "updated_at": "2026-09-25T05:28:55.510364Z",
+  "category": "onboarding-kit",
+  "category_fk": "136f6139-eeb6-4bed-b6be-584c76293d36",
+  "subcategory": "",
+  "subcategory_other": "",
+  "meta_title": "Starting Your NIAT Journey: A Student’s First Step | NIAT Insider",
+  "meta_description": "What the first days feel like for a new student at NIAT in Visakhapatnam, on the NSRIT campus, from arriving on campus to settling into a routine.",
+  "meta_keywords": [
+    "first year student experience",
+    "new student experience",
+    "starting college",
+    "NIAT admission",
+    "campus life"
+  ],
+  "topic": "",
+  "author": {
+    "id": "7f6d594a-5eca-4f00-b693-3d4e801cc540",
+    "username": "sai kumar",
+    "email": "saikumar2007p@gmail.com"
+  },
+  "reviewed_by": {
+    "id": "3e953a36-0612-4e20-b763-c72e4bc60eba",
+    "username": "gopal",
+    "email": "gopal@gmail.com"
+  },
+  "author_username": "sai kumar",
+  "campus_name": "Nadimpalli Satyanarayana Raju Institute of Technology",
+  "campus_id": "0806e66f-f9a2-4012-8477-55ca95e81e14",
+  "upvote_count": 0,
+  "view_count": 45,
+  "ai_generated": false,
+  "cover_image": "",
+  "images": [],
+  "ai_confident_score": 40,
+  "ai_feedback": {
+    "model": "claude-sonnet-5",
+    "scores": {
+      "reader_value": 10,
+      "relevance_to_niat": 12,
+      "information_quality": 5,
+      "credibility_evidence": 6,
+      "engagement_potential": 1,
+      "originality_authenticity": 6
+    },
+    "reasons": {
+      "reader_value": "Generic description of an onboarding kit with no specific details, personal experience, or actionable takeaways.",
+      "relevance_to_niat": "Topic is relevant to NIAT students but content is too vague to be genuinely useful.",
+      "information_quality": "Clear and coherent sentences, but content is abstract and repetitive without real substance.",
+      "credibility_evidence": "Nothing false or misleading, but no concrete evidence or specific claims to verify either.",
+      "engagement_potential": "Lacks any story, humor, or specific hook to keep a reader interested.",
+      "originality_authenticity": "Reads like generic promotional/AI-style filler; no first-hand voice, no specifics about what was actually in the kit or how it felt."
+    },
+    "decision": "reject",
+    "cqs_total": 40,
+    "framework": "CQS-v1",
+    "strengths": [
+      "Positive tone",
+      "On-topic for NIAT onboarding"
+    ],
+    "weaknesses": [
+      "No personal experience or specific details",
+      "Generic, template-like writing",
+      "No actionable information about what's actually in the kit"
+    ],
+    "safety_veto": false,
+    "audience_fit": "prospective_students",
+    "safety_reason": "",
+    "top_3_improvements": [
+      "Add specific items/contents from your own kit",
+      "Share a personal anecdote or reaction",
+      "Include concrete details instead of generic statements"
+    ],
+    "credibility_suggestions": [
+      "Share what was actually inside the kit",
+      "Describe your personal reaction on receiving it",
+      "Add photos of the kit contents"
+    ],
+    "editorial_recommendation": "Too generic to offer real value; needs personal detail and specifics before publishing."
+  },
+  "ai_reviewed_at": "2026-07-10T12:17:03.240177Z",
+  "reviewed_at": "2026-09-25T05:28:55.509916Z",
+  "saved_at": "2026-10-08T14:20:58.146Z",
+  "removed_reason": "Removed from the site because it is too short to publish. Expand it with your own experience (specific names, places, numbers or events) and resubmit."
+}
