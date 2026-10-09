@@ -1,0 +1,43 @@
+{
+  "id": "c1a7c11e-fc26-4b9b-9a47-bf4543a016bd",
+  "slug": "niat-sgu-tech-workshops-learning-experience-review",
+  "title": "1.Learning & Tech Opportunities at NIAT SGU",
+  "body": "<h2 data-end=\"1102\" data-section-id=\"pyeglr\" data-start=\"1052\"><br/></h2>\n<p data-end=\"1226\" data-start=\"1104\">At NIAT SGU, students get solid exposure to the tech field through different learning methods that go way beyond your typical classroom setup.</p><p data-end=\"1226\" data-start=\"1104\"><br/></p>\n<ul data-end=\"1524\" data-start=\"1228\">\n<li data-end=\"1299\" data-section-id=\"1oj63qj\" data-start=\"1228\">-&gt;Regular <strong data-end=\"1251\" data-start=\"1238\">workshops</strong> are conducted on topics like IoT and robotics\n</li>\n<li data-end=\"1369\" data-section-id=\"18f10q2\" data-start=\"1300\">-&gt;These sessions help students understand concepts beyond textbooks\n</li>\n<li data-end=\"1451\" data-section-id=\"1ql982o\" data-start=\"1370\">-&gt;One useful feature is <strong data-end=\"1415\" data-start=\"1394\">recorded lectures</strong>, so students can catch up anytime\n</li>\n<li data-end=\"1524\" data-section-id=\"rszood\" data-start=\"1452\">\n<strong data-end=\"1475\" data-start=\"1454\">-&gt;Practice sessions</strong> are also conducted to strengthen understanding\n</li><li data-end=\"1524\" data-section-id=\"rszood\" data-start=\"1452\"><br/></li>\n</ul>\n<p data-end=\"1575\" data-start=\"1526\">At the same time, there is scope for improvement:</p><p data-end=\"1575\" data-start=\"1526\"><br/></p>\n<ul data-end=\"1697\" data-start=\"1576\">\n<li data-end=\"1635\" data-section-id=\"sbwk1z\" data-start=\"1576\">-&gt;Some workshops feel more <strong data-end=\"1633\" data-start=\"1603\">theoretical than practical</strong>\n</li>\n<li data-end=\"1697\" data-section-id=\"1akjk6o\" data-start=\"1636\">-&gt;A few sessions can be <strong data-end=\"1695\" data-start=\"1660\">complex and difficult to follow</strong>\n</li>\n</ul>\n<p data-end=\"1828\" data-start=\"1699\">-&gt;If more focus is given to <strong data-end=\"1771\" data-start=\"1725\">hands-on learning and simpler explanations</strong>, the overall learning experience can become even better.</p><p data-end=\"1828\" data-start=\"1699\"><br/></p><p data-end=\"1828\" data-start=\"1699\">If you are someone who is interested in learning and actively participating, you can make the most out of the opportunities here.</p>",
+  "excerpt": "Regular IoT and robotics workshops, recorded lectures you can replay anytime, and practice sessions to nail concepts. But here's the honest truth about gaps.",
+  "status": "published",
+  "rejection_reason": "",
+  "featured": false,
+  "created_at": "2026-04-08T17:21:34.442516Z",
+  "updated_at": "2026-05-15T09:36:24.392887Z",
+  "category": "30-days-at-niat",
+  "category_fk": "6dbab2f8-231d-4452-9725-77eefc9b4a4d",
+  "subcategory": "campus-life",
+  "subcategory_other": "",
+  "meta_title": "NIAT Kolhapur Tech Workshops: Real Student Experience",
+  "meta_description": "A current NIAT SGU student breaks down the IoT and robotics workshops, recorded lectures, and practice sessions. What works and what needs fixing.",
+  "meta_keywords": [],
+  "topic": "",
+  "author": {
+    "id": "c1a1d3b0-acd8-4f0b-918a-8216f43b70bf",
+    "username": "Charani Reddy",
+    "email": "charanireddy.g5@gmail.com"
+  },
+  "reviewed_by": {
+    "id": "eb2606c2-b8d5-49ec-be8a-48e6bd37aa3f",
+    "username": "gops",
+    "email": "gopalreddyanthapu07@gmail.com"
+  },
+  "author_username": "Charani Reddy",
+  "campus_name": "Sanjay Ghodawat University",
+  "campus_id": "2fbf1a81-e71c-4bd8-a9ba-2c44207ca066",
+  "upvote_count": 0,
+  "view_count": 22,
+  "ai_generated": false,
+  "cover_image": "",
+  "images": [],
+  "ai_confident_score": null,
+  "ai_feedback": null,
+  "ai_reviewed_at": null,
+  "reviewed_at": "2026-05-15T09:36:24.392550Z",
+  "saved_at": "2026-10-09T04:16:58.442Z"
+}

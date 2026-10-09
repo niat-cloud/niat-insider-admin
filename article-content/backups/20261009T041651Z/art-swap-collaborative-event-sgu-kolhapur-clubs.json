@@ -1,0 +1,56 @@
+{
+  "id": "b914d017-4b9a-4f60-bea6-78ed87611cc2",
+  "slug": "art-swap-collaborative-event-sgu-kolhapur-clubs",
+  "title": "A Simple Idea That Turned Into Something Special",
+  "body": "<div class=\"article-image-card\">\n<button aria-label=\"Remove image\" class=\"article-image-card__remove\" data-remove-image-card=\"\" type=\"button\">âœ•</button>\n<img alt=\"\" class=\"article-image-card__img\" src=\"https://media.niatinsider.com/article/images/650590df-683c-4a57-8c09-9d7cd9ea3464_Screenshot%202026-04-30%20212145.png\"/>\n<div class=\"article-image-card__caption\" contenteditable=\"true\" data-placeholder=\"Add a description...\"></div>\n</div><div class=\"article-image-card\">\n<button aria-label=\"Remove image\" class=\"article-image-card__remove\" data-remove-image-card=\"\" type=\"button\">âœ•</button>\n<img alt=\"\" class=\"article-image-card__img\" src=\"https://media.niatinsider.com/article/images/cfbf2b7c-813a-4916-b20e-ebbee4d63756_Screenshot%202026-04-30%20212220.png\"/>\n<div class=\"article-image-card__caption\" contenteditable=\"true\" data-placeholder=\"Add a description...\"></div>\n</div><div class=\"article-image-card\">\n<button aria-label=\"Remove image\" class=\"article-image-card__remove\" data-remove-image-card=\"\" type=\"button\">âœ•</button>\n<img alt=\"\" class=\"article-image-card__img\" src=\"https://media.niatinsider.com/article/images/7fc923a9-cd86-4844-87db-5abbbb534004_Screenshot%202026-04-30%20212253.png\"/>\n<div class=\"article-image-card__caption\" contenteditable=\"true\" data-placeholder=\"Add a description...\"></div>\n</div><p class=\"isSelectedEnd\">Honestly, this art swap event at SGU Kolhapur felt really different in the best way. At first, it sounded simple — draw something, swap it, and complete it.</p><p class=\"isSelectedEnd\">At first, it sounded simple — draw something, swap it, and complete it.<br/>But once it actually started, it became way more interesting than expected.</p><p class=\"isSelectedEnd\">You begin with your own idea, your own style. Everything feels under your control.<br/>And then suddenly… you hand it over to someone else.</p><p class=\"isSelectedEnd\">That moment is what changes everything.</p><p class=\"isSelectedEnd\">Now you’re not just drawing — you’re trying to understand what the other person was thinking. Sometimes you continue their idea, sometimes you completely twist it into something new. And that’s where things got really fun.</p><p class=\"isSelectedEnd\">The best part was seeing how every artwork turned out.<br/>No two pieces were the same. Each one had a mix of two different minds, and that made them feel more creative and unpredictable.</p><p class=\"isSelectedEnd\">The environment was also really nice — relaxed, interactive, and full of energy. People were talking, laughing, helping each other, and just enjoying the process without overthinking it.</p><p class=\"isSelectedEnd\">With 47 registrations and 24 final artworks, it clearly showed that people were genuinely interested and involved.</p><p class=\"isSelectedEnd\">Also, the way the event was managed — from explaining the concept to smoothly handling the swap and completion — made everything flow naturally.</p><p class=\"isSelectedEnd\">But what I really liked about this event is that it wasn’t just about art.</p><p class=\"isSelectedEnd\">It was about:</p><ul data-spread=\"false\"><li>Letting go of control</li><li>Trusting someone else with your idea</li><li>And building something together</li></ul><p class=\"isSelectedEnd\">And that’s something we don’t usually experience.</p><p class=\"isSelectedEnd\">In the end, it didn’t feel like just an event…<br/>it felt like a shared creative moment.</p><p>And honestly, that’s what made it memorable.</p>",
+  "excerpt": "At first, it sounded simple — draw something, swap it, and complete it. But once it actually started, it became way more interesting than expected.",
+  "status": "published",
+  "rejection_reason": "",
+  "featured": true,
+  "created_at": "2026-04-30T15:47:25.793709Z",
+  "updated_at": "2026-05-18T09:38:52.344760Z",
+  "category": "club-directory",
+  "category_fk": "5902304a-60e1-43c5-879b-7a8b7155b77f",
+  "subcategory": "arts-council",
+  "subcategory_other": "",
+  "meta_title": "Art Swap Event at SGU Kolhapur: Creative Club Experience",
+  "meta_description": "A simple draw-and-swap concept turned into something magical at SGU Kolhapur. 47 students, 24 unique artworks, and pure creative chaos. See what happened.",
+  "meta_keywords": [
+    "sgu kolhapur clubs",
+    "art events sgu kolhapur",
+    "creative clubs sanjay ghodawat university",
+    "student activities kolhapur",
+    "art swap collaborative event",
+    "sgu campus club events",
+    "creative workshops kolhapur colleges",
+    "student club experiences sgu"
+  ],
+  "topic": "",
+  "author": {
+    "id": "231a5ee4-a5e3-48e3-be41-3d349a7e0be9",
+    "username": "Lavin Pattnaik",
+    "email": "lavinpattnaikoffical@gmail.com"
+  },
+  "reviewed_by": {
+    "id": "27e80db7-e7f9-4d09-a817-30d5187f6c92",
+    "username": "sai",
+    "email": "s5410072562@gmail.com"
+  },
+  "author_username": "Lavin Pattnaik",
+  "campus_name": "Sanjay Ghodawat University",
+  "campus_id": "2fbf1a81-e71c-4bd8-a9ba-2c44207ca066",
+  "upvote_count": 0,
+  "view_count": 33,
+  "ai_generated": false,
+  "cover_image": "https://media.niatinsider.com/article/images/650590df-683c-4a57-8c09-9d7cd9ea3464_Screenshot%202026-04-30%20212145.png",
+  "images": [
+    "https://media.niatinsider.com/article/images/650590df-683c-4a57-8c09-9d7cd9ea3464_Screenshot%202026-04-30%20212145.png",
+    "https://media.niatinsider.com/article/images/cfbf2b7c-813a-4916-b20e-ebbee4d63756_Screenshot%202026-04-30%20212220.png",
+    "https://media.niatinsider.com/article/images/7fc923a9-cd86-4844-87db-5abbbb534004_Screenshot%202026-04-30%20212253.png"
+  ],
+  "ai_confident_score": null,
+  "ai_feedback": null,
+  "ai_reviewed_at": null,
+  "reviewed_at": "2026-05-18T09:38:52.344351Z",
+  "saved_at": "2026-10-09T04:16:51.005Z"
+}
