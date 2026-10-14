@@ -27,6 +27,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   "career-wins": "Career & Wins",
   "local-travel": "Local Travel",
   amenities: "Amenities",
+  "know-niat": "Know NIAT",
 };
 
 type AdminArticleCardProps = {

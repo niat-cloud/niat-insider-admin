@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, ChevronRight as Crumb, Clock, Eye, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { demoteH1, prepareArticleTables, stripScripts, unlinkBareDomainWords } from "@/lib/articleBody";
-import { getCategoryConfig } from "@/lib/articleCategories";
+import { getCategoryConfig, KNOW_NIAT_CATEGORY } from "@/lib/articleCategories";
 import type { ArticleStatus } from "@/types/article";
 import styles from "./ArticlePreview.module.css";
 
@@ -64,8 +64,14 @@ export function ArticlePreview({ article, device = "desktop", className }: Artic
   const category = getCategoryConfig(article.category);
   const campus = article.campusName || "Global";
   const isGlobal = campus === "Global";
+  // Know NIAT articles belong to no campus on the site, whatever campus is stored.
+  const knowNiat = article.category === KNOW_NIAT_CATEGORY;
   const updatedDays = daysSince(article.updatedAt);
-  const crumbs = article.isGlobalGuide || isGlobal ? ["Home", "Articles"] : ["Home", campus, "Articles"];
+  const crumbs = knowNiat
+    ? ["Home", "Know NIAT"]
+    : article.isGlobalGuide || isGlobal
+      ? ["Home", "Articles"]
+      : ["Home", campus, "Articles"];
 
   return (
     <div
@@ -109,16 +115,18 @@ export function ArticlePreview({ article, device = "desktop", className }: Artic
           >
             {category.label}
           </span>
-          <span
-            className="rounded-full px-2 py-1 text-xs font-medium"
-            style={
-              isGlobal
-                ? { backgroundColor: "#f8fafc", color: "#64748b", border: "1px solid #94a3b8" }
-                : { backgroundColor: "#991b1b", color: "white", border: "1px solid #991b1b" }
-            }
-          >
-            {campus}
-          </span>
+          {!knowNiat && (
+            <span
+              className="rounded-full px-2 py-1 text-xs font-medium"
+              style={
+                isGlobal
+                  ? { backgroundColor: "#f8fafc", color: "#64748b", border: "1px solid #94a3b8" }
+                  : { backgroundColor: "#991b1b", color: "white", border: "1px solid #991b1b" }
+              }
+            >
+              {campus}
+            </span>
+          )}
         </div>
 
         {article.status && article.status !== "published" && (

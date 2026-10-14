@@ -47,3 +47,14 @@ body first; commit `article-content/` (bodies and backups) so changes can
 be undone after the session ends. Rules for content: keep the student's
 text as written, add only what the article supports, no fees/placement/
 exam claims the article doesn't make.
+
+## Know NIAT category
+
+Choosing the **Know NIAT** category (`know-niat`, `lib/articleCategories.ts`)
+takes an article off its campus on the public site: it moves to
+`/article/<slug>` (the old campus URL redirects), its breadcrumb becomes
+Home > Know NIAT > title, and it is listed on `/know-niat`; ticking Featured
+pins it at the top there. The stored campus is kept, so choosing another
+category sends it back. The category must exist as a Category row in the
+backend with exactly that slug. Mirrors `src/lib/articlePath.ts` in the
+niatinsider repo.
