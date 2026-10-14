@@ -29,7 +29,7 @@ import { useArticleDraft } from "@/hooks/useArticleDraft";
 import { uploadArticleImage, getSubcategories } from "@/lib/api/articles";
 import type { SubcategoryOption } from "@/lib/api/articles";
 import { articleEditSchema, type ArticleEditFormValues } from "@/lib/schemas/article";
-import { categoryOptionsFor } from "@/lib/articleCategories";
+import { categoryOptionsFor, KNOW_NIAT_CATEGORY } from "@/lib/articleCategories";
 import { getBodyStats, PUBLIC_SITE_URL, slugify, MIN_RECOMMENDED_WORDS } from "@/lib/articleBody";
 import { getArticleChecks, SLUG_PATTERN } from "@/lib/articleChecks";
 import { cn } from "@/lib/utils";
@@ -786,6 +786,13 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
                       ))}
                     </select>
                     {errors.category && <p className="text-sm text-red-400">{errors.category.message}</p>}
+                    {category === KNOW_NIAT_CATEGORY && (
+                      <p className="text-xs leading-relaxed text-amber-300">
+                        Know NIAT articles belong to no campus on the site: they leave {article.campus_name || "the campus"} pages,
+                        move to /article/{values.slug || article.slug} (the old campus link redirects) and show
+                        Home › Know NIAT in the breadcrumb. Choose another category to send it back.
+                      </p>
+                    )}
                   </div>
                   {subcategories.length > 0 && (
                     <div className="space-y-1.5">

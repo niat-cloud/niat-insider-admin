@@ -16,6 +16,15 @@ export type CategoryConfig = {
   border: string;
 };
 
+/**
+ * Admin-only category for general answers about NIAT. On the public site an
+ * article in it belongs to no campus (the stored campus is ignored): it lives
+ * at /article/<slug> with the breadcrumb Home > Know NIAT > title, and leaves
+ * campus pages. Switching the category back returns it to its campus. Mirrors
+ * `src/lib/articlePath.ts` in the niatinsider repo.
+ */
+export const KNOW_NIAT_CATEGORY = "know-niat";
+
 export const ARTICLE_CATEGORIES: CategoryConfig[] = [
   { value: "onboarding-kit", label: "Onboarding Kit", bg: "#f3f0ff", text: "#7678ed", border: "#7678ed" },
   { value: "30-days-at-niat", label: "30 Days at NIAT", bg: "#fdf2f8", text: "#be185d", border: "#be185d" },
@@ -24,6 +33,7 @@ export const ARTICLE_CATEGORIES: CategoryConfig[] = [
   { value: "career-wins", label: "Career & Wins", bg: "#f0fdf4", text: "#15803d", border: "#15803d" },
   { value: "local-travel", label: "Local Travel", bg: "#f0f9ff", text: "#0369a1", border: "#0369a1" },
   { value: "amenities", label: "Amenities", bg: "#f5f3ff", text: "#6d28d9", border: "#6d28d9" },
+  { value: KNOW_NIAT_CATEGORY, label: "Know NIAT", bg: "#fefce8", text: "#a16207", border: "#a16207" },
 ];
 
 const DEFAULT_STYLE = { bg: "#f1f5f9", text: "#475569", border: "#94a3b8" };
