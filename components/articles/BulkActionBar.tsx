@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCheck, X } from "lucide-react";
+import { CheckCheck, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +8,8 @@ type BulkActionBarProps = {
   selectedCount: number;
   onPublish: () => void;
   onReject: () => void;
+  onFeature?: () => void;
+  onUnfeature?: () => void;
   onClear: () => void;
   isLoading: boolean;
 };
@@ -16,6 +18,8 @@ export function BulkActionBar({
   selectedCount,
   onPublish,
   onReject,
+  onFeature,
+  onUnfeature,
   onClear,
   isLoading,
 }: BulkActionBarProps) {
@@ -42,6 +46,27 @@ export function BulkActionBar({
         </button>
       </div>
       <div className="flex items-center gap-3">
+        {onFeature && (
+          <Button
+            type="button"
+            className="bg-amber-500 px-4 py-2 font-medium text-zinc-950 hover:bg-amber-400"
+            onClick={onFeature}
+            disabled={isLoading}
+          >
+            <Star className="mr-2 h-4 w-4" />
+            Feature
+          </Button>
+        )}
+        {onUnfeature && (
+          <Button
+            type="button"
+            className="border border-zinc-600 bg-transparent px-4 py-2 font-medium text-zinc-200 hover:bg-zinc-800"
+            onClick={onUnfeature}
+            disabled={isLoading}
+          >
+            Unfeature
+          </Button>
+        )}
         <Button
           type="button"
           className="bg-green-600 px-5 py-2 font-medium text-white hover:bg-green-500"
