@@ -30,6 +30,9 @@ const STATUS_FILTERS = [
   { value: "draft", label: "Draft" },
 ] as const;
 
+/** The public home page re-reads its featured list every 5 minutes. */
+const FEATURED_HINT = "It shows in the home page's Featured section within 5 minutes.";
+
 const STATUS_TOAST: Record<string, string> = {
   published: "Article published",
   pending_review: "Article sent to review",
@@ -50,6 +53,7 @@ export function ArticlesClient() {
   const [campusFilter, setCampusFilter] = useState(() => searchParams.get("campus_id") ?? "");
   const [authorFilter] = useState(() => searchParams.get("author_id") ?? "");
   const [aiGeneratedFilter, setAiGeneratedFilter] = useState(() => searchParams.get("ai_generated") ?? "");
+  const [featuredFilter, setFeaturedFilter] = useState(() => searchParams.get("featured") ?? "");
   const [campuses, setCampuses] = useState<AdminCampusOption[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectionMode, setSelectionMode] = useState(false);
@@ -69,9 +73,10 @@ export function ArticlesClient() {
     if (campusFilter) qs.set("campus_id", campusFilter);
     if (authorFilter) qs.set("author_id", authorFilter);
     if (aiGeneratedFilter) qs.set("ai_generated", aiGeneratedFilter);
+    if (featuredFilter) qs.set("featured", featuredFilter);
     const query = qs.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  }, [debouncedSearch, statusFilter, campusFilter, authorFilter, aiGeneratedFilter, pathname, router]);
+  }, [debouncedSearch, statusFilter, campusFilter, authorFilter, aiGeneratedFilter, featuredFilter, pathname, router]);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +98,7 @@ export function ArticlesClient() {
     ...(campusFilter ? { campus_id: campusFilter } : {}),
     ...(authorFilter ? { author_id: authorFilter } : {}),
     ...(aiGeneratedFilter ? { ai_generated: aiGeneratedFilter } : {}),
+    ...(featuredFilter ? { featured: featuredFilter } : {}),
     ordering: "-created_at",
     page_size: PAGE_SIZE,
   };
@@ -220,6 +226,52 @@ export function ArticlesClient() {
     }
   }, [selectedIds, bulkUpdate, toast, clearSelection]);
 
+  const handleBulkFeatured = useCallback(
+    async (featured: boolean) => {
+      const ids = Array.from(selectedIds);
+      try {
+        await bulkUpdate.mutateAsync(ids.map((id) => ({ id, featured })));
+        toast({
+          title: `${ids.length} articles ${featured ? "featured" : "unfeatured"}`,
+          description: featured ? FEATURED_HINT : undefined,
+        });
+        clearSelection();
+      } catch (err: unknown) {
+        const ax = err as { response?: { data?: { detail?: string } } };
+        toast({
+          title: "Error",
+          description: ax.response?.data?.detail ?? "Failed to update articles",
+          variant: "destructive",
+        });
+      }
+    },
+    [selectedIds, bulkUpdate, toast, clearSelection]
+  );
+
+  const handleFeaturedChange = useCallback(
+    async (id: string, featured: boolean, status: ArticleStatus) => {
+      try {
+        await updateMutation.mutateAsync({ id, data: { featured } });
+        toast({
+          title: featured ? "Article featured" : "Article removed from Featured",
+          description: !featured
+            ? undefined
+            : status === "published"
+              ? FEATURED_HINT
+              : "It will show on the home page once it is published.",
+        });
+      } catch (err: unknown) {
+        const ax = err as { response?: { data?: { detail?: string } } };
+        toast({
+          title: "Error",
+          description: ax.response?.data?.detail ?? "Failed to update article",
+          variant: "destructive",
+        });
+      }
+    },
+    [updateMutation, toast]
+  );
+
   const handleStatusChange = useCallback(
     async (id: string, newStatus: ArticleStatus, rejectionReason?: string) => {
       const payload: { status: ArticleStatus; rejection_reason?: string } = {
@@ -338,6 +390,15 @@ export function ArticlesClient() {
               <option value="false">User-generated only</option>
               <option value="true">AI-generated only</option>
             </select>
+            <select
+              value={featuredFilter}
+              onChange={(e) => setFeaturedFilter(e.target.value)}
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white sm:w-44"
+            >
+              <option value="">Featured or not</option>
+              <option value="true">Featured only</option>
+              <option value="false">Not featured</option>
+            </select>
           </div>
         </div>
       </div>
@@ -445,6 +506,7 @@ export function ArticlesClient() {
                   article={article}
                   onStatusChange={handleStatusChange}
                   onDelete={handleDelete}
+                  onFeaturedChange={handleFeaturedChange}
                   isSelected={selectedIds.has(article.id)}
                   onSelect={toggleSelect}
                   selectionMode={selectionMode}
@@ -455,6 +517,8 @@ export function ArticlesClient() {
               selectedCount={selectedIds.size}
               onPublish={handleBulkPublish}
               onReject={handleBulkReject}
+              onFeature={() => handleBulkFeatured(true)}
+              onUnfeature={() => handleBulkFeatured(false)}
               onClear={clearSelection}
               isLoading={bulkUpdate.isPending}
             />

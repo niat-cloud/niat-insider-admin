@@ -14,7 +14,7 @@ import {
   getAuthorLeaderboard,
 } from "@/lib/api/articles";
 import type { GetArticlesParams } from "@/lib/api/articles";
-import type { ArticleStatus } from "@/types/article";
+import type { Article, ArticleStatus } from "@/types/article";
 
 export function useArticles(params?: GetArticlesParams) {
   return useQuery({
@@ -75,10 +75,10 @@ export function useDeleteArticle() {
 export function useBulkUpdateArticles() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (updates: { id: string; status: ArticleStatus }[]) => {
-      return Promise.all(
-        updates.map(({ id, status }) => updateArticle(id, { status }))
-      );
+    mutationFn: async (
+      updates: ({ id: string } & Partial<Pick<Article, "status" | "featured">>)[]
+    ) => {
+      return Promise.all(updates.map(({ id, ...data }) => updateArticle(id, data)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["articles"] });

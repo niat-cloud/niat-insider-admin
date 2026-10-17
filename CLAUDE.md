@@ -58,3 +58,14 @@ pins it at the top there. The stored campus is kept, so choosing another
 category sends it back. The category must exist as a Category row in the
 backend with exactly that slug. Mirrors `src/lib/articlePath.ts` in the
 niatinsider repo.
+
+## Featured articles
+
+Ticking **Featured** (the star on each article card, the bulk "Feature" /
+"Unfeature" buttons, or the switch in the editor) puts a published article
+in the public home page's Featured section, newest first, up to 8
+(`src/lib/homeFeaturedArticles.ts` in the niatinsider repo). The articles
+list filters on it with "Featured only" / "Not featured" (`featured=true|false`,
+kept in the URL). The home page re-reads the list every 5 minutes, so a change
+can take that long to show; a featured article that is not published yet
+shows once it is published.

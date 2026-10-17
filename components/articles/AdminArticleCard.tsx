@@ -38,6 +38,8 @@ type AdminArticleCardProps = {
     rejectionReason?: string
   ) => void;
   onDelete: (id: string) => void;
+  /** Ticks or unticks Featured (the home page's Featured section). */
+  onFeaturedChange?: (id: string, featured: boolean, status: ArticleStatus) => void;
   isSelected?: boolean;
   onSelect?: (id: string) => void;
   selectionMode?: boolean;
@@ -47,6 +49,7 @@ export function AdminArticleCard({
   article,
   onStatusChange,
   onDelete,
+  onFeaturedChange,
   isSelected = false,
   onSelect,
   selectionMode = false,
@@ -82,6 +85,22 @@ export function AdminArticleCard({
           <StatusBadge status={article.status} />
         </div>
         <div className="flex items-center gap-1">
+          {onFeaturedChange && (
+            <button
+              type="button"
+              onClick={() => onFeaturedChange(article.id, !article.featured, article.status)}
+              aria-pressed={article.featured}
+              title={article.featured ? "Remove from the home page's Featured section" : "Show in the home page's Featured section"}
+              className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                article.featured
+                  ? "border-amber-500/60 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25"
+                  : "border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white"
+              }`}
+            >
+              <Star className={`h-3.5 w-3.5 ${article.featured ? "fill-current" : ""}`} />
+              {article.featured ? "Featured" : "Feature"}
+            </button>
+          )}
           <QuickStatusMenu article={article} onStatusChange={onStatusChange} />
         </div>
       </div>
@@ -152,7 +171,7 @@ export function AdminArticleCard({
           <Eye className="h-3.5 w-3.5" />
           {article.view_count}
         </span>
-        {article.featured && (
+        {article.featured && !onFeaturedChange && (
           <span className="flex items-center gap-1 text-[#991b1b]">
             <Star className="h-3.5 w-3.5 fill-current" />
             Featured
