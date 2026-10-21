@@ -3,7 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { getArticles } from "@/lib/api/articles";
 import { getAdminQuestions, getAdminAnswers } from "@/lib/api/qa";
-import { FileText, CheckCircle, Clock, XCircle, BarChart3, MessageCircleQuestion } from "lucide-react";
+import { getAdminGuides } from "@/lib/api/guides";
+import { FileText, CheckCircle, Clock, XCircle, BarChart3, MessageCircleQuestion, BookOpenCheck } from "lucide-react";
 import Link from "next/link";
 
 export function DashboardClient() {
@@ -41,6 +42,11 @@ export function DashboardClient() {
   const { data: qaPendingAnswers, isLoading: isLoadingQaAnswers } = useQuery({
     queryKey: ["qa", "answers", "pending-count"],
     queryFn: () => getAdminAnswers({ status: "pending", page: 1 }),
+  });
+
+  const { data: guidesPending, isLoading: isLoadingGuides } = useQuery({
+    queryKey: ["guides", "pending-count"],
+    queryFn: () => getAdminGuides({ status: "pending", page_size: 1 }),
   });
 
   const isLoadingQaPending = isLoadingQaQuestions || isLoadingQaAnswers;
@@ -121,6 +127,15 @@ export function DashboardClient() {
       color: "text-purple-400",
       bg: "bg-purple-400/10",
       href: "/qa?status=pending",
+    },
+    {
+      name: "Guides to Review",
+      value: guidesPending?.status_counts.pending ?? 0,
+      isLoading: isLoadingGuides,
+      icon: BookOpenCheck,
+      color: "text-amber-400",
+      bg: "bg-amber-400/10",
+      href: "/guides",
     },
   ];
 

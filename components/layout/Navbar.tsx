@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AdminProfileSection } from "./AdminProfileSection";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, FileText, Trophy, CheckCircle, MessageCircleQuestion } from "lucide-react";
+import { LayoutDashboard, FileText, Trophy, CheckCircle, MessageCircleQuestion, BookOpenCheck } from "lucide-react";
 
 const NAV_LINKS = [
   { name: "Admin", href: "/", icon: LayoutDashboard },
@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { name: "Leaderboard", href: "/authors", icon: Trophy },
   { name: "Approve", href: "/approve", icon: CheckCircle },
   { name: "Q&A", href: "/qa", icon: MessageCircleQuestion },
+  { name: "Guides", href: "/guides", icon: BookOpenCheck },
 ];
 
 export function Navbar() {
