@@ -69,3 +69,31 @@ list filters on it with "Featured only" / "Not featured" (`featured=true|false`,
 kept in the URL). The home page re-reads the list every 5 minutes, so a change
 can take that long to show; a featured article that is not published yet
 shows once it is published.
+
+## How-To Guides
+
+`/guides` is the review queue for How-To Guides (students' success stories,
+a separate product from articles). It uses the backend's moderation API
+(`/api/admin/guides/...`, `lib/api/guides.ts`, types in `types/guide.ts`
+mirroring `guides/admin_serializers.py`). Moderators and admins can review;
+restoring a taken-down guide and `/guides/categories` (categories and the
+questions writers answer) are admin only.
+
+- The queue opens on guides waiting for review, oldest submission first.
+  Bulk Publish / Send back only act on pending guides.
+- `/guides/<slug>` shows the guide in the public site's styles, the backend's
+  submit rules recomputed (`lib/guideReview.ts`, keep in sync with
+  `guides/validation.py`), the author's contact details and the status
+  history. Publish stays disabled until the reviewer ticks the
+  `REVIEW_CHECKLIST`: achievements are self-reported, so the reviewer is the
+  only check. After a decision it opens the next pending guide.
+- Reject and take down need a reason of at least 10 characters; the author
+  sees it on the site's `/how-to-guides/mine`. `REJECT_TEMPLATES` are
+  starting points, edited before sending.
+- Edits (title, achievement, summary, search text, featured) never change the
+  status. Publish, take down and edits of a live guide make the backend
+  revalidate the site's `/how-to-guides` pages.
+- Links go to the site (niatinsider repo): live guides at
+  `/how-to-guides/<category>/<slug>`, others at `/how-to-guides/preview/<slug>`
+  (needs a moderator login on the site). Featured guides show in "Stories
+  worth starting with" on `/how-to-guides`.
