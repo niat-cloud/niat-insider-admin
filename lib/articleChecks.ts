@@ -44,6 +44,9 @@ export function getArticleChecks(values: ArticleEditFormValues, stats: BodyStats
   if (stats.imagesMissingAlt > 0)
     add("alt", "warn", `${stats.imagesMissingAlt} image${stats.imagesMissingAlt === 1 ? "" : "s"} in the body without alt text`);
 
+  if (stats.imagesOffsite > 0)
+    add("offsite", "warn", `${stats.imagesOffsite} image${stats.imagesOffsite === 1 ? "" : "s"} in the body not hosted on media.niatinsider.com. The live site will not show ${stats.imagesOffsite === 1 ? "it" : "them"}`);
+
   add(
     "cover",
     values.cover_image ? "ok" : "warn",
