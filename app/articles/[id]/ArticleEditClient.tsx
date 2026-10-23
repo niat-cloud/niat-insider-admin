@@ -304,13 +304,11 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
     else goBack();
   };
 
-  const uploadImage = async (file: File) => {
+  /** Uploads to the media bucket; returns the URL, or null after reporting the error. */
+  const uploadFile = async (file: File): Promise<string | null> => {
     try {
       const { url } = await uploadArticleImage(file);
-      const current = form.getValues("images") ?? [];
-      setField("images", [...current, url]);
-      if (!form.getValues("cover_image")) setField("cover_image", url);
-      toast({ title: "Image uploaded" });
+      return url;
     } catch (err: unknown) {
       const ax = err as { response?: { data?: { error?: string } } };
       toast({
@@ -318,7 +316,18 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
         description: ax.response?.data?.error ?? `Could not upload ${file.name}`,
         variant: "destructive",
       });
+      return null;
     }
+  };
+
+  /** Carousel image (under the title on the live site). */
+  const uploadImage = async (file: File) => {
+    const url = await uploadFile(file);
+    if (!url) return;
+    const current = form.getValues("images") ?? [];
+    setField("images", [...current, url]);
+    if (!form.getValues("cover_image")) setField("cover_image", url);
+    toast({ title: "Image uploaded" });
   };
 
   const removeImage = (url: string) => {
@@ -592,6 +601,10 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
                       })
                     }
                     minHeight="420px"
+                    // Body images live only in the body HTML, where they are
+                    // placed; they are not added to the carousel.
+                    onUploadImage={uploadFile}
+                    articleImages={values.images ?? []}
                   />
                   {errors.body && <p className="text-sm text-red-400">{errors.body.message}</p>}
                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-zinc-500">
@@ -602,6 +615,7 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
                     <span>H2 × {stats.h2}</span>
                     <span>H3 × {stats.h3}</span>
                     <span>{stats.links} links</span>
+                    {stats.inlineImages > 0 && <span>{stats.inlineImages} in-text image{stats.inlineImages === 1 ? "" : "s"}</span>}
                     {stats.emptyBlocks > 0 && <span className="text-amber-300">{stats.emptyBlocks} empty blocks</span>}
                   </div>
                 </div>

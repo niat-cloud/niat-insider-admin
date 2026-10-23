@@ -80,8 +80,17 @@
 }
 
 .content :global(img) {
+  display: block;
   max-width: 100%;
+  margin: 1em auto;
   border-radius: 8px;
+  cursor: grab;
+}
+
+/* Clicked image: shows the image toolbar (alt text, move, remove). */
+.content :global(img.ProseMirror-selectednode) {
+  outline: 3px solid #991b1b;
+  outline-offset: 2px;
 }
 
 .content :global(code) {

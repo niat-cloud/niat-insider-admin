@@ -48,6 +48,29 @@ be undone after the session ends. Rules for content: keep the student's
 text as written, add only what the article supports, no fees/placement/
 exam claims the article doesn't make.
 
+## Images inside the article body
+
+Articles have two kinds of images:
+- **Carousel images** (the "Images" strip above the editor, `images[]` and
+  `cover_image`): shown under the title on the live site; the cover is used
+  on cards and social shares.
+- **In-text images**: placed anywhere in the body (after the intro, between
+  questions, ...). They are plain `<img src alt>` tags in the body HTML and
+  are not added to `images[]`, so they never show twice.
+
+In the editor (`components/articles/RichTextEditor.tsx`): the image button
+in the toolbar uploads (same `/api/articles/upload_image/`) and inserts at
+the cursor, with alt text; it can also place one of the carousel images.
+Image files dragged or pasted into the text are uploaded and placed there.
+Clicking an image shows its toolbar: alt text, move up / down one block,
+remove. No backend change: the body already stores the HTML.
+
+The public site renders body images only from `media.niatinsider.com`
+(`ARTICLE_MEDIA_HOSTS` in both repos, keep in sync) and drops others; the
+editor warns about such images and the checks sidebar counts them. No
+captions yet: `<figure>` would force the article into HTML mode
+(`hasUnsupportedMarkup`).
+
 ## Know NIAT category
 
 Choosing the **Know NIAT** category (`know-niat`, `lib/articleCategories.ts`)

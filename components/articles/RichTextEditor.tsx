@@ -10,12 +10,17 @@ import Table from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableHeader from "@tiptap/extension-table-header";
 import TableCell from "@tiptap/extension-table-cell";
+import { NodeSelection } from "@tiptap/pm/state";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
   Bold,
   Code2,
   Eraser,
+  ImagePlus,
   Italic,
+  Loader2,
   Link2,
   Link2Off,
   List,
@@ -34,6 +39,7 @@ import {
   cleanBodyHtml,
   cleanPastedHtml,
   hasUnsupportedMarkup,
+  isHostedMediaUrl,
   prepareBodyForEditor,
 } from "@/lib/articleBody";
 import styles from "./RichTextEditor.module.css";
@@ -46,7 +52,50 @@ type RichTextEditorProps = {
   minHeight?: string;
   /** Called after "Clean up" runs, with the number of empty blocks removed. */
   onCleaned?: (removed: number) => void;
+  /**
+   * Uploads an image for the body and returns its URL, or null when the
+   * upload failed (the caller reports the error). Without it the editor has
+   * no image tools.
+   */
+  onUploadImage?: (file: File) => Promise<string | null>;
+  /** The article's carousel images, offered for placing in the body too. */
+  articleImages?: string[];
 };
+
+const IMAGE_TYPES = /^image\//;
+
+function imageFiles(list: FileList | null | undefined): File[] {
+  return Array.from(list ?? []).filter((f) => IMAGE_TYPES.test(f.type));
+}
+
+/**
+ * Moves the selected block node (an image) one place up or down among its
+ * siblings. Returns false when it is already first/last or nothing is selected.
+ */
+function moveSelectedNode(editor: Editor, direction: -1 | 1): boolean {
+  const { state, view } = editor;
+  const sel = state.selection;
+  if (!(sel instanceof NodeSelection)) return false;
+  const $pos = state.doc.resolve(sel.from);
+  const parent = $pos.parent;
+  const target = $pos.index() + direction;
+  if (target < 0 || target >= parent.childCount) return false;
+  const neighbour = parent.child(target);
+  const tr = state.tr.delete(sel.from, sel.to);
+  const insertAt = direction === -1 ? sel.from - neighbour.nodeSize : sel.from + neighbour.nodeSize;
+  tr.insert(insertAt, sel.node);
+  tr.setSelection(NodeSelection.create(tr.doc, insertAt));
+  view.dispatch(tr.scrollIntoView());
+  return true;
+}
+
+function canMoveSelectedNode(editor: Editor, direction: -1 | 1): boolean {
+  const sel = editor.state.selection;
+  if (!(sel instanceof NodeSelection)) return false;
+  const $pos = editor.state.doc.resolve(sel.from);
+  const target = $pos.index() + direction;
+  return target >= 0 && target < $pos.parent.childCount;
+}
 
 type BlockType = "p" | "h2" | "h3" | "h4";
 
@@ -119,6 +168,8 @@ export function RichTextEditor({
   className,
   minHeight = "320px",
   onCleaned,
+  onUploadImage,
+  articleImages = [],
 }: RichTextEditorProps) {
   // Bodies with layout markup the visual editor would strip open as HTML,
   // unless the admin chooses to switch anyway.
@@ -129,6 +180,41 @@ export function RichTextEditor({
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const linkInputRef = useRef<HTMLInputElement>(null);
+  const [imageOpen, setImageOpen] = useState(false);
+  const [imageAlt, setImageAlt] = useState("");
+  const [imageUploading, setImageUploading] = useState(false);
+  const imageAltRef = useRef<HTMLInputElement>(null);
+  const imageFileRef = useRef<HTMLInputElement>(null);
+  // editorProps are fixed when the editor is created; drop/paste read the
+  // current upload callback through this ref.
+  const uploadRef = useRef(onUploadImage);
+  const editorRef = useRef<Editor | null>(null);
+  useEffect(() => {
+    uploadRef.current = onUploadImage;
+  }, [onUploadImage]);
+
+  /** Uploads files and inserts them, in order, at `pos` (or the cursor). */
+  const uploadAndInsert = useCallback(async (ed: Editor, files: File[], alt: string, pos?: number) => {
+    const upload = uploadRef.current;
+    if (!upload || files.length === 0) return;
+    setImageUploading(true);
+    try {
+      let at = pos;
+      for (const file of files) {
+        const src = await upload(file);
+        if (!src) continue;
+        const node = ed.schema.nodes.image.create({ src, alt: alt || null });
+        if (at === undefined) {
+          ed.chain().focus().setImage({ src, alt }).run();
+        } else {
+          ed.view.dispatch(ed.state.tr.insert(at, node));
+          at += node.nodeSize;
+        }
+      }
+    } finally {
+      setImageUploading(false);
+    }
+  }, []);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -161,11 +247,44 @@ export function RichTextEditor({
         "aria-label": "Article body",
       },
       transformPastedHTML: cleanPastedHtml,
+      // Image files dropped or pasted into the text are uploaded and placed
+      // there. Without an upload callback the browser default is blocked so
+      // no data: image ends up in the body.
+      handleDrop: (view, event, _slice, moved) => {
+        if (moved) return false;
+        const files = imageFiles(event.dataTransfer?.files);
+        if (files.length === 0) return false;
+        event.preventDefault();
+        const ed = editorRef.current;
+        if (!ed || !uploadRef.current) return true;
+        const coords = view.posAtCoords({ left: event.clientX, top: event.clientY });
+        // Insert between blocks: at the end of the top-level block dropped on.
+        let pos: number | undefined;
+        if (coords) {
+          const $pos = view.state.doc.resolve(coords.pos);
+          pos = $pos.depth > 0 ? $pos.after(1) : coords.pos;
+        }
+        void uploadAndInsert(ed, files, "", pos);
+        return true;
+      },
+      handlePaste: (_view, event) => {
+        const files = imageFiles(event.clipboardData?.files);
+        if (files.length === 0) return false;
+        // Clipboard HTML with text (a paste from Docs) goes through cleanPastedHtml.
+        if (event.clipboardData?.getData("text/plain")) return false;
+        event.preventDefault();
+        const ed = editorRef.current;
+        if (ed && uploadRef.current) void uploadAndInsert(ed, files, "");
+        return true;
+      },
     },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
   });
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
 
   // Keep the editor in sync when the value changes from outside (article load, draft restore).
   useEffect(() => {
@@ -197,6 +316,7 @@ export function RichTextEditor({
   const openLink = useCallback(() => {
     if (!editor) return;
     setLinkUrl(editor.getAttributes("link").href ?? "");
+    setImageOpen(false);
     setLinkOpen(true);
     requestAnimationFrame(() => linkInputRef.current?.focus());
   }, [editor]);
@@ -209,6 +329,28 @@ export function RichTextEditor({
     else chain.unsetLink().run();
     setLinkOpen(false);
   }, [editor, linkUrl]);
+
+  const openImage = useCallback(() => {
+    setLinkOpen(false);
+    setImageAlt("");
+    setImageOpen(true);
+    requestAnimationFrame(() => imageAltRef.current?.focus());
+  }, []);
+
+  const closeImage = useCallback(() => {
+    setImageOpen(false);
+    editor?.commands.focus();
+  }, [editor]);
+
+  /** Places an already uploaded image (from the carousel) at the cursor. */
+  const insertExistingImage = useCallback(
+    (src: string) => {
+      if (!editor) return;
+      editor.chain().focus().setImage({ src, alt: imageAlt.trim() }).run();
+      setImageOpen(false);
+    },
+    [editor, imageAlt]
+  );
 
   const runCleanup = useCallback(() => {
     if (!editor) return;
@@ -315,6 +457,11 @@ export function RichTextEditor({
         >
           <TableIcon className="h-4 w-4" />
         </ToolButton>
+        {onUploadImage && (
+          <ToolButton label="Insert image at the cursor" disabled={!visual || imageUploading} active={imageOpen} onClick={openImage}>
+            {imageUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+          </ToolButton>
+        )}
 
         <Divider />
         <ToolButton label="Undo" shortcut={`${MOD}+Z`} disabled={!visual || !editor.can().undo()} onClick={() => editor.chain().focus().undo().run()}>
@@ -419,6 +566,130 @@ export function RichTextEditor({
               {label}
             </button>
           ))}
+        </div>
+      )}
+
+      {visual && editor.isActive("image") && (() => {
+        const src: string = editor.getAttributes("image").src ?? "";
+        return (
+          <div
+            role="toolbar"
+            aria-label="Image"
+            className="flex flex-wrap items-center gap-1 border-b border-zinc-800 bg-zinc-900 px-2 py-1.5 text-xs"
+          >
+            <span className="mr-1 text-zinc-500">Image:</span>
+            <label htmlFor="rte-image-alt-edit" className="sr-only">
+              Alt text
+            </label>
+            <input
+              id="rte-image-alt-edit"
+              value={editor.getAttributes("image").alt ?? ""}
+              onChange={(e) => editor.chain().updateAttributes("image", { alt: e.target.value }).run()}
+              placeholder="Alt text: what the image shows"
+              className="h-7 min-w-0 flex-1 rounded-md border border-zinc-700 bg-zinc-800 px-2 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#991b1b]"
+            />
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => moveSelectedNode(editor, -1)}
+              disabled={!canMoveSelectedNode(editor, -1)}
+              className="inline-flex h-7 items-center gap-1 rounded-md border border-zinc-700 px-2 text-zinc-200 hover:bg-zinc-700/70 hover:text-white disabled:opacity-35"
+              title="Move the image above the previous block"
+            >
+              <ArrowUp className="h-3.5 w-3.5" /> Up
+            </button>
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => moveSelectedNode(editor, 1)}
+              disabled={!canMoveSelectedNode(editor, 1)}
+              className="inline-flex h-7 items-center gap-1 rounded-md border border-zinc-700 px-2 text-zinc-200 hover:bg-zinc-700/70 hover:text-white disabled:opacity-35"
+              title="Move the image below the next block"
+            >
+              <ArrowDown className="h-3.5 w-3.5" /> Down
+            </button>
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => editor.chain().focus().deleteSelection().run()}
+              className="h-7 rounded-md px-2 text-red-300 hover:bg-red-950/60 hover:text-red-200"
+            >
+              Remove image
+            </button>
+            {src && !isHostedMediaUrl(src) && (
+              <span className="w-full text-[11px] text-amber-300">
+                This image is not on media.niatinsider.com, so the live site will not show it. Upload it again with the image button.
+              </span>
+            )}
+          </div>
+        );
+      })()}
+
+      {imageOpen && visual && onUploadImage && (
+        <div className="space-y-2 border-b border-zinc-800 bg-zinc-900 px-3 py-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="rte-image-alt" className="text-xs text-zinc-400">
+              Alt text
+            </label>
+            <input
+              id="rte-image-alt"
+              ref={imageAltRef}
+              value={imageAlt}
+              onChange={(e) => setImageAlt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") closeImage();
+                if (e.key === "Enter") e.preventDefault();
+              }}
+              placeholder="What the image shows, e.g. Students at the NIAT Hyderabad campus library"
+              className="h-8 min-w-0 flex-1 rounded-md border border-zinc-700 bg-zinc-800 px-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#991b1b]"
+            />
+            <input
+              ref={imageFileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const files = imageFiles(e.target.files);
+                e.target.value = "";
+                setImageOpen(false);
+                void uploadAndInsert(editor, files, imageAlt.trim());
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => imageFileRef.current?.click()}
+              className="h-8 rounded-md bg-[#991b1b] px-3 text-xs font-medium text-white hover:bg-[#7f1d1d]"
+            >
+              Upload image…
+            </button>
+            <button type="button" onClick={closeImage} className="h-8 rounded-md px-2 text-xs text-zinc-400 hover:text-white">
+              Cancel
+            </button>
+          </div>
+          {articleImages.length > 0 && (
+            <div>
+              <p className="mb-1 text-[11px] text-zinc-500">
+                Or place one of the article&apos;s images. It stays in the carousel under the title too; remove it there if it should only show here.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {articleImages.map((url) => (
+                  <button
+                    key={url}
+                    type="button"
+                    onClick={() => insertExistingImage(url)}
+                    title="Insert at the cursor"
+                    className="h-14 w-20 overflow-hidden rounded border border-zinc-700 hover:border-[#991b1b] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#991b1b]"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt="" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <p className="text-[11px] text-zinc-500">
+            The image goes where the cursor is. You can also drag or paste image files straight into the text, and click an image to move it or edit its alt text.
+          </p>
         </div>
       )}
 

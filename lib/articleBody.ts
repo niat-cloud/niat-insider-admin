@@ -9,6 +9,23 @@ export const PUBLIC_SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.niatinsider.com"
 ).replace(/\/$/, "");
 
+/**
+ * The public site only renders body images served from these hosts and drops
+ * every other <img> (niatinsider `src/lib/articleBodyHtml.ts`
+ * `ARTICLE_MEDIA_HOSTS` / `stripOffsiteBodyImages`). Keep in sync.
+ */
+export const ARTICLE_MEDIA_HOSTS = ["media.niatinsider.com"] as const;
+
+export function isHostedMediaUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const { protocol, hostname } = new URL(url.trim());
+    return protocol === "https:" && (ARTICLE_MEDIA_HOSTS as readonly string[]).includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
 /** Articles shorter than this tend to fail Semrush's text-to-HTML ratio check on the public site. */
 export const MIN_RECOMMENDED_WORDS = 450;
 
@@ -272,6 +289,8 @@ export type BodyStats = {
   links: number;
   inlineImages: number;
   imagesMissingAlt: number;
+  /** Body images the public site will drop because they are not on ARTICLE_MEDIA_HOSTS. */
+  imagesOffsite: number;
   emptyBlocks: number;
 };
 
@@ -301,6 +320,7 @@ export function getBodyStats(html: string): BodyStats {
     links: count(/<a\s[^>]*href=/gi),
     inlineImages: imgTags.length,
     imagesMissingAlt: imgTags.filter((t) => !/\salt\s*=\s*"[^"]+"/i.test(t)).length,
+    imagesOffsite: imgTags.filter((t) => !isHostedMediaUrl(t.match(/\ssrc="([^"]*)"/i)?.[1])).length,
     emptyBlocks,
   };
 }
