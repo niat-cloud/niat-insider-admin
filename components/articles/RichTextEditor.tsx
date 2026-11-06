@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import {
   cleanBodyHtml,
   cleanPastedHtml,
+  defaultImageAlt,
   hasUnsupportedMarkup,
   isHostedMediaUrl,
   prepareBodyForEditor,
@@ -60,7 +61,19 @@ type RichTextEditorProps = {
   onUploadImage?: (file: File) => Promise<string | null>;
   /** The article's carousel images, offered for placing in the body too. */
   articleImages?: string[];
+  /** Article title, used for the default alt text of images inserted without one. */
+  articleTitle?: string;
 };
+
+/** Text of the last heading before `pos`, so a default alt can name the section. */
+function headingBefore(ed: Editor, pos: number): string {
+  let heading = "";
+  ed.state.doc.nodesBetween(0, Math.min(pos, ed.state.doc.content.size), (node, nodePos) => {
+    if (node.type.name === "heading" && nodePos < pos) heading = node.textContent;
+    return node.type.name !== "heading";
+  });
+  return heading;
+}
 
 const IMAGE_TYPES = /^image\//;
 
@@ -170,6 +183,7 @@ export function RichTextEditor({
   onCleaned,
   onUploadImage,
   articleImages = [],
+  articleTitle = "",
 }: RichTextEditorProps) {
   // Bodies with layout markup the visual editor would strip open as HTML,
   // unless the admin chooses to switch anyway.
@@ -188,10 +202,14 @@ export function RichTextEditor({
   // editorProps are fixed when the editor is created; drop/paste read the
   // current upload callback through this ref.
   const uploadRef = useRef(onUploadImage);
+  const titleRef = useRef(articleTitle);
   const editorRef = useRef<Editor | null>(null);
   useEffect(() => {
     uploadRef.current = onUploadImage;
   }, [onUploadImage]);
+  useEffect(() => {
+    titleRef.current = articleTitle;
+  }, [articleTitle]);
 
   /** Uploads files and inserts them, in order, at `pos` (or the cursor). */
   const uploadAndInsert = useCallback(async (ed: Editor, files: File[], alt: string, pos?: number) => {
@@ -203,9 +221,13 @@ export function RichTextEditor({
       for (const file of files) {
         const src = await upload(file);
         if (!src) continue;
-        const node = ed.schema.nodes.image.create({ src, alt: alt || null });
+        // Never save an image without alt text (audits flag it): default to
+        // the article title and the section heading the image lands under.
+        const where = at ?? ed.state.selection.from;
+        const altText = alt.trim() || defaultImageAlt(titleRef.current, headingBefore(ed, where));
+        const node = ed.schema.nodes.image.create({ src, alt: altText });
         if (at === undefined) {
-          ed.chain().focus().setImage({ src, alt }).run();
+          ed.chain().focus().setImage({ src, alt: altText }).run();
         } else {
           ed.view.dispatch(ed.state.tr.insert(at, node));
           at += node.nodeSize;
@@ -346,10 +368,11 @@ export function RichTextEditor({
   const insertExistingImage = useCallback(
     (src: string) => {
       if (!editor) return;
-      editor.chain().focus().setImage({ src, alt: imageAlt.trim() }).run();
+      const alt = imageAlt.trim() || defaultImageAlt(articleTitle, headingBefore(editor, editor.state.selection.from));
+      editor.chain().focus().setImage({ src, alt }).run();
       setImageOpen(false);
     },
-    [editor, imageAlt]
+    [editor, imageAlt, articleTitle]
   );
 
   const runCleanup = useCallback(() => {
@@ -640,7 +663,7 @@ export function RichTextEditor({
                 if (e.key === "Escape") closeImage();
                 if (e.key === "Enter") e.preventDefault();
               }}
-              placeholder="What the image shows, e.g. Students at the NIAT Hyderabad campus library"
+              placeholder="What the image shows, e.g. Students at the NIAT Hyderabad campus library (empty: title + section heading)"
               className="h-8 min-w-0 flex-1 rounded-md border border-zinc-700 bg-zinc-800 px-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#991b1b]"
             />
             <input
