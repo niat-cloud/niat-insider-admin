@@ -5,11 +5,13 @@ import type { BodyStats } from "@/lib/articleBody";
 type ChecksPanelProps = {
   checks: ArticleCheck[];
   stats: BodyStats;
+  /** Gives body images without alt text a default (title + section heading). */
+  onFillMissingAlt?: () => void;
 };
 
 const ORDER = { error: 0, warn: 1, ok: 2 } as const;
 
-export function ChecksPanel({ checks, stats }: ChecksPanelProps) {
+export function ChecksPanel({ checks, stats, onFillMissingAlt }: ChecksPanelProps) {
   const sorted = [...checks].sort((a, b) => ORDER[a.level] - ORDER[b.level]);
   const open = checks.filter((c) => c.level !== "ok").length;
 
@@ -42,7 +44,18 @@ export function ChecksPanel({ checks, stats }: ChecksPanelProps) {
             ) : (
               <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-400" aria-label="Needs fixing" />
             )}
-            <span className={c.level === "ok" ? "text-zinc-400" : "text-zinc-200"}>{c.message}</span>
+            <span className={c.level === "ok" ? "text-zinc-400" : "text-zinc-200"}>
+              {c.message}
+              {c.id === "alt" && onFillMissingAlt && (
+                <button
+                  type="button"
+                  onClick={onFillMissingAlt}
+                  className="ml-2 rounded border border-zinc-700 px-1.5 py-0.5 text-xs text-zinc-200 hover:bg-zinc-800"
+                >
+                  Fill missing alt text
+                </button>
+              )}
+            </span>
           </li>
         ))}
       </ul>

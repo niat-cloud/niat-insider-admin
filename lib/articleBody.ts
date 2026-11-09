@@ -336,3 +336,48 @@ export function slugify(input: string): string {
     .slice(0, 80)
     .replace(/-+$/g, "");
 }
+
+const decodeBasicEntities = (s: string) =>
+  s.replace(/&nbsp;| /g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+const escapeAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/**
+ * Default alt text for a body image: the article title plus the heading the
+ * image sits under. Images dragged or pasted into the text, or uploaded with
+ * the alt box empty, used to be saved with no alt, and audits flagged each
+ * one as "missing alt attribute".
+ */
+export function defaultImageAlt(title: string | null | undefined, heading?: string | null): string {
+  const t = decodeBasicEntities((title ?? "").trim()) || "Article image";
+  const h = decodeBasicEntities((heading ?? "").replace(/\s+/g, " ").trim());
+  return h ? `${t}: ${h}` : t;
+}
+
+/**
+ * Gives every body <img> without real alt text the default above; an alt an
+ * editor wrote is kept, a repeated one gets "(image N)". Same rule as the
+ * public site's `fillMissingImageAlt` (niatinsider `src/lib/articleBodyHtml.ts`),
+ * which applies it to every stored body on render. Keep the two in sync.
+ */
+export function fillMissingImageAlt(html: string, title: string | null | undefined): string {
+  if (!html || !html.includes("<img")) return html || "";
+  let heading = "";
+  let imageCount = 0;
+  const used = new Set<string>();
+  return html.replace(/<h([2-6])\b[^>]*>([\s\S]*?)<\/h\1>|<img\b[^>]*>/gi, (match, _level, inner: string | undefined) => {
+    if (inner !== undefined) {
+      heading = inner.replace(/<[^>]+>/g, "");
+      return match;
+    }
+    imageCount += 1;
+    const current = match.match(/\salt\s*=\s*"([^"]*)"/i)?.[1];
+    if (current !== undefined && current.trim() !== "") {
+      used.add(decodeBasicEntities(current.trim()));
+      return match;
+    }
+    let alt = defaultImageAlt(title, heading);
+    if (used.has(alt)) alt = `${alt} (image ${imageCount})`;
+    used.add(alt);
+    return match.replace(/\salt\s*=\s*"[^"]*"/i, "").replace(/^<img\b/i, `<img alt="${escapeAttr(alt)}"`);
+  });
+}

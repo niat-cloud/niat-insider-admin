@@ -42,7 +42,7 @@ export function getArticleChecks(values: ArticleEditFormValues, stats: BodyStats
     add("empty", "warn", `${stats.emptyBlocks} empty bullet${stats.emptyBlocks === 1 ? "" : "s"} or paragraph${stats.emptyBlocks === 1 ? "" : "s"}. Use "Clean up" in the toolbar`);
 
   if (stats.imagesMissingAlt > 0)
-    add("alt", "warn", `${stats.imagesMissingAlt} image${stats.imagesMissingAlt === 1 ? "" : "s"} in the body without alt text`);
+    add("alt", "warn", `${stats.imagesMissingAlt} image${stats.imagesMissingAlt === 1 ? "" : "s"} in the body without alt text. "Fill missing alt text" gives each one the title and its section heading`);
 
   if (stats.imagesOffsite > 0)
     add("offsite", "warn", `${stats.imagesOffsite} image${stats.imagesOffsite === 1 ? "" : "s"} in the body not hosted on media.niatinsider.com. The live site will not show ${stats.imagesOffsite === 1 ? "it" : "them"}`);

@@ -30,7 +30,7 @@ import { uploadArticleImage, getSubcategories } from "@/lib/api/articles";
 import type { SubcategoryOption } from "@/lib/api/articles";
 import { articleEditSchema, type ArticleEditFormValues } from "@/lib/schemas/article";
 import { categoryOptionsFor, KNOW_NIAT_CATEGORY } from "@/lib/articleCategories";
-import { getBodyStats, PUBLIC_SITE_URL, slugify, MIN_RECOMMENDED_WORDS } from "@/lib/articleBody";
+import { fillMissingImageAlt, getBodyStats, PUBLIC_SITE_URL, slugify, MIN_RECOMMENDED_WORDS } from "@/lib/articleBody";
 import { getArticleChecks, SLUG_PATTERN } from "@/lib/articleChecks";
 import { cn } from "@/lib/utils";
 import type { Article, ArticleStatus } from "@/types/article";
@@ -605,6 +605,7 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
                     // placed; they are not added to the carousel.
                     onUploadImage={uploadFile}
                     articleImages={values.images ?? []}
+                    articleTitle={values.title}
                   />
                   {errors.body && <p className="text-sm text-red-400">{errors.body.message}</p>}
                   <div className="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-zinc-500">
@@ -858,7 +859,14 @@ export function ArticleEditClient({ articleId }: ArticleEditClientProps) {
 
             {tab === "checks" && (
               <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
-                <ChecksPanel checks={checks} stats={stats} />
+                <ChecksPanel
+                  checks={checks}
+                  stats={stats}
+                  onFillMissingAlt={() => {
+                    setField("body", fillMissingImageAlt(values.body, values.title));
+                    toast({ title: `Filled alt text on ${stats.imagesMissingAlt} image${stats.imagesMissingAlt === 1 ? "" : "s"}. Review it, then save` });
+                  }}
+                />
               </div>
             )}
 
