@@ -4,6 +4,8 @@
  * the editor's pre-publish checks.
  */
 
+import { isYouTubeEmbedSrc } from "@/lib/youtube";
+
 /** The public site (niatinsider.com) builds article URLs on this origin. */
 export const PUBLIC_SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.niatinsider.com"
@@ -43,8 +45,11 @@ export const MIN_RECOMMENDED_WORDS = 450;
 const UNSUPPORTED_TAGS = /<(iframe|video|audio|embed|object|figure|form|style)\b/i;
 const TEMPLATE_CLASS = /\sclass\s*=\s*["'][^"']*\bni-[\w-]+/i;
 
+/** The editor's own YouTube blocks (see YouTubeEmbed) are supported, so they do not force HTML mode. */
+const YOUTUBE_BLOCK = /<div\b[^>]*\sdata-youtube-video[^>]*>\s*<iframe\b[^>]*><\/iframe>\s*<\/div>/gi;
+
 export function hasUnsupportedMarkup(html: string): boolean {
-  const body = html || "";
+  const body = (html || "").replace(YOUTUBE_BLOCK, "");
   return UNSUPPORTED_TAGS.test(body) || TEMPLATE_CLASS.test(body);
 }
 
@@ -206,11 +211,18 @@ export function cleanPastedHtml(html: string): string {
     if (!src || /^(data:|blob:|file:)|googleusercontent\.com|docs\.google\.com/i.test(src)) img.remove();
   });
 
+  // Only YouTube embeds survive a paste; any other iframe is dropped.
+  root.querySelectorAll("iframe").forEach((el) => {
+    if (!isYouTubeEmbedSrc(el.getAttribute("src"))) el.remove();
+  });
+
   root.querySelectorAll("*").forEach((el) => {
     for (const attr of Array.from(el.attributes)) {
       const keep =
         (el.tagName === "A" && (attr.name === "href" || attr.name === "target" || attr.name === "rel")) ||
         (el.tagName === "IMG" && (attr.name === "src" || attr.name === "alt")) ||
+        (el.tagName === "IFRAME" && attr.name === "src" && isYouTubeEmbedSrc(attr.value)) ||
+        (el.tagName === "DIV" && attr.name === "data-youtube-video") ||
         ((el.tagName === "TD" || el.tagName === "TH") && (attr.name === "colspan" || attr.name === "rowspan"));
       if (!keep) el.removeAttribute(attr.name);
     }

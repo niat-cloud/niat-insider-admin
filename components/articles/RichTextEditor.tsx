@@ -10,6 +10,8 @@ import Table from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableHeader from "@tiptap/extension-table-header";
 import TableCell from "@tiptap/extension-table-cell";
+import { YouTubeEmbed } from "./editor/YouTubeEmbed";
+import { parseYouTubeUrl } from "@/lib/youtube";
 import { NodeSelection } from "@tiptap/pm/state";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -33,6 +35,7 @@ import {
   Table as TableIcon,
   Underline as UnderlineIcon,
   Undo2,
+  Youtube,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -194,6 +197,10 @@ export function RichTextEditor({
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const linkInputRef = useRef<HTMLInputElement>(null);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoError, setVideoError] = useState("");
+  const videoInputRef = useRef<HTMLInputElement>(null);
   const [imageOpen, setImageOpen] = useState(false);
   const [imageAlt, setImageAlt] = useState("");
   const [imageUploading, setImageUploading] = useState(false);
@@ -255,6 +262,7 @@ export function RichTextEditor({
         HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
       }),
       Image.configure({ inline: false }),
+      YouTubeEmbed,
       Table.configure({ resizable: false }),
       TableRow,
       TableHeader,
@@ -339,6 +347,7 @@ export function RichTextEditor({
     if (!editor) return;
     setLinkUrl(editor.getAttributes("link").href ?? "");
     setImageOpen(false);
+    setVideoOpen(false);
     setLinkOpen(true);
     requestAnimationFrame(() => linkInputRef.current?.focus());
   }, [editor]);
@@ -352,8 +361,28 @@ export function RichTextEditor({
     setLinkOpen(false);
   }, [editor, linkUrl]);
 
+  const openVideo = useCallback(() => {
+    setLinkOpen(false);
+    setImageOpen(false);
+    setVideoUrl("");
+    setVideoError("");
+    setVideoOpen(true);
+    requestAnimationFrame(() => videoInputRef.current?.focus());
+  }, []);
+
+  const applyVideo = useCallback(() => {
+    if (!editor) return;
+    if (!parseYouTubeUrl(videoUrl)) {
+      setVideoError("That is not a YouTube video link. Paste a link like https://www.youtube.com/watch?v=… or https://youtu.be/…");
+      return;
+    }
+    editor.chain().focus().setYouTubeEmbed({ url: videoUrl }).run();
+    setVideoOpen(false);
+  }, [editor, videoUrl]);
+
   const openImage = useCallback(() => {
     setLinkOpen(false);
+    setVideoOpen(false);
     setImageAlt("");
     setImageOpen(true);
     requestAnimationFrame(() => imageAltRef.current?.focus());
@@ -485,6 +514,10 @@ export function RichTextEditor({
             {imageUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
           </ToolButton>
         )}
+
+        <ToolButton label="Embed YouTube video at the cursor" disabled={!visual} active={videoOpen} onClick={openVideo}>
+          <Youtube className="h-4 w-4" />
+        </ToolButton>
 
         <Divider />
         <ToolButton label="Undo" shortcut={`${MOD}+Z`} disabled={!visual || !editor.can().undo()} onClick={() => editor.chain().focus().undo().run()}>
@@ -714,6 +747,87 @@ export function RichTextEditor({
             The image goes where the cursor is. You can also drag or paste image files straight into the text, and click an image to move it or edit its alt text.
           </p>
         </div>
+      )}
+
+      {visual && editor.isActive("youtubeEmbed") && (
+        <div
+          role="toolbar"
+          aria-label="YouTube video"
+          className="flex flex-wrap items-center gap-1 border-b border-zinc-800 bg-zinc-900 px-2 py-1.5 text-xs"
+        >
+          <span className="mr-1 text-zinc-500">YouTube video:</span>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => moveSelectedNode(editor, -1)}
+            disabled={!canMoveSelectedNode(editor, -1)}
+            className="inline-flex h-7 items-center gap-1 rounded-md border border-zinc-700 px-2 text-zinc-200 hover:bg-zinc-700/70 hover:text-white disabled:opacity-35"
+          >
+            <ArrowUp className="h-3.5 w-3.5" /> Up
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => moveSelectedNode(editor, 1)}
+            disabled={!canMoveSelectedNode(editor, 1)}
+            className="inline-flex h-7 items-center gap-1 rounded-md border border-zinc-700 px-2 text-zinc-200 hover:bg-zinc-700/70 hover:text-white disabled:opacity-35"
+          >
+            <ArrowDown className="h-3.5 w-3.5" /> Down
+          </button>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => editor.chain().focus().deleteSelection().run()}
+            className="h-7 rounded-md px-2 text-red-300 hover:bg-red-950/60 hover:text-red-200"
+          >
+            Remove video
+          </button>
+        </div>
+      )}
+
+      {videoOpen && visual && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            applyVideo();
+          }}
+          className="flex flex-wrap items-center gap-2 border-b border-zinc-800 bg-zinc-900 px-3 py-2"
+        >
+          <label htmlFor="rte-video-url" className="text-xs text-zinc-400">
+            YouTube link
+          </label>
+          <input
+            id="rte-video-url"
+            ref={videoInputRef}
+            value={videoUrl}
+            onChange={(e) => {
+              setVideoUrl(e.target.value);
+              setVideoError("");
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setVideoOpen(false);
+                editor.commands.focus();
+              }
+              if (e.key === "Enter") {
+                e.preventDefault();
+                applyVideo();
+              }
+            }}
+            placeholder="https://www.youtube.com/watch?v=…"
+            className="h-8 min-w-0 flex-1 rounded-md border border-zinc-700 bg-zinc-800 px-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#991b1b]"
+          />
+          <button type="button" onClick={applyVideo} className="h-8 rounded-md bg-[#991b1b] px-3 text-xs font-medium text-white hover:bg-[#7f1d1d]">
+            Embed
+          </button>
+          <button type="button" onClick={() => setVideoOpen(false)} className="h-8 rounded-md px-2 text-xs text-zinc-400 hover:text-white">
+            Cancel
+          </button>
+          <span className={cn("w-full text-[11px]", videoError ? "text-amber-300" : "text-zinc-500")}>
+            {videoError || "The video goes where the cursor is. Click it in the text to move or remove it. Links with a start time (&t=90) keep it."}
+          </span>
+        </form>
       )}
 
       {linkOpen && visual && (
